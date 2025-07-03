@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.next/
+build/
+dist/
+.DS_Store
+*.pem
+.vercel
+*.log
+.turbo
+.vscode/
+coverage/
+public/uploads/
+rkms-portal.zip

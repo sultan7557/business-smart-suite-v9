@@ -1,0 +1,2102 @@
+// Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["extendedWhereUnique"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String              @id @default(uuid())
+  username          String              @unique
+  password          String
+  name              String
+  email             String?             @unique
+  role              String              @default("user")
+  active            Boolean             @default(true)
+  status            UserStatus          @default(ACTIVE)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  policies          Policy[]            @relation("PolicyCreatedBy")
+  policyUpdates     Policy[]            @relation("PolicyUpdatedBy")
+  documents         Document[]
+  documentVersions  DocumentVersion[]
+  policyVersions    PolicyVersion[]
+  auditorAudits    Audit[] @relation("AuditorAudits")
+  createdAudits    Audit[] @relation("CreatedAudits")
+  updatedAudits    Audit[] @relation("UpdatedAudits")
+  interestedParties   InterestedParty[] @relation("InterestedPartyCreatedBy")
+  interestedPartyUpdates InterestedParty[] @relation("InterestedPartyUpdatedBy")
+  interestedPartyVersions InterestedPartyVersion[]
+  interestedPartyReviews InterestedPartyReview[]
+  orgContextsCreated  OrganizationalContext[] @relation("OrgContextCreatedBy")
+  orgContextsUpdated  OrganizationalContext[] @relation("OrgContextUpdatedBy")
+  orgContextVersions  OrganizationalContextVersion[]
+  orgContextReviews   OrganizationalContextReview[]
+  objectivesCreated   Objective[] @relation("ObjectiveCreatedBy")
+  objectivesUpdated   Objective[] @relation("ObjectiveUpdatedBy")
+  objectiveSectionVersions   ObjectiveSectionVersion[]
+  objectiveSectionReviews    ObjectiveSectionReview[]
+  maintenanceCreated        Maintenance[] @relation("MaintenanceCreatedBy")
+  maintenanceUpdated        Maintenance[] @relation("MaintenanceUpdatedBy")
+  maintenanceDocuments      MaintenanceDocument[] @relation()
+  maintenanceDocumentVersions MaintenanceDocumentVersion[] @relation()
+  maintenanceSectionVersions MaintenanceSectionVersion[]
+  maintenanceSectionReviews  MaintenanceSectionReview[]
+  // Improvement Register navbar
+  improvementInternalOwner    ImprovementRegister[] @relation("ImprovementInternalOwner")
+  improvementInternalRaisedBy ImprovementRegister[] @relation("ImprovementInternalRaisedBy")
+  improvementCompletedBy      ImprovementRegister[] @relation("ImprovementCompletedBy")
+  improvementDocuments        ImprovementDocument[] @relation()
+  improvementDocumentVersions ImprovementDocumentVersion[] @relation()
+  improvementRegisterSectionVersions ImprovementRegisterSectionVersion[]
+  improvementRegisterSectionReviews  ImprovementRegisterSectionReview[]
+  supplierDocuments           SupplierDocument[] @relation()
+  supplierDocumentVersions    SupplierDocumentVersion[] @relation()
+  //Training navbar
+  employee       Employee?
+  uploadedEmployeeDocuments EmployeeDocument[]
+  // Legal Register navbar
+  legalRegistersCreated    LegalRegister[]       @relation("LegalRegisterCreatedBy")
+  legalRegistersUpdated    LegalRegister[]       @relation("LegalRegisterUpdatedBy")
+  legalRegisterVersions    LegalRegisterVersion[]
+  legalRegisterReviews     LegalRegisterReview[]
+  legalRegisterDocuments   LegalRegisterDocument[]
+  // MANUAL SECTION SIDEBAR 
+  manuals          Manual[]            @relation("ManualCreatedBy")
+  manualUpdates    Manual[]            @relation("ManualUpdatedBy")
+  manualVersions   ManualVersion[]
+  manualReviews    ManualReview[]
+  //Procedure section sidebar 
+  procedures        Procedure[]       @relation("ProcedureCreatedBy")
+  procedureUpdates  Procedure[]       @relation("ProcedureUpdatedBy")
+  procedureVersions ProcedureVersion[]
+  procedureReviews   ProcedureReview[]
+  //Form section sidebar
+  formsCreated       Form[]           @relation("FormCreatedBy")
+  formUpdates        Form[]           @relation("FormUpdatedBy")
+  formVersions       FormVersion[]
+  FormReviews        FormReview[]
+  //Certificates section sidebar 
+  certificatesCreated      Certificate[]        @relation("CertificateCreatedBy")
+  certificateUpdates       Certificate[]        @relation("CertificateUpdatedBy")
+  certificateVersions      CertificateVersion[]
+  certificateReviews CertificateReview[]
+  correctiveActionsCreated    CorrectiveAction[] @relation("CorrectiveActionCreatedBy")
+  correctiveActionsUpdated    CorrectiveAction[] @relation("CorrectiveActionUpdatedBy")
+  correctiveActionVersions    CorrectiveActionVersion[]
+  correctiveActionReviews     CorrectiveActionReview[]
+  businessContinuitiesCreated    BusinessContinuity[] @relation("BusinessContinuityCreatedBy")
+  businessContinuitiesUpdated    BusinessContinuity[] @relation("BusinessContinuityUpdatedBy")
+  businessContinuityVersions     BusinessContinuityVersion[]
+  businessContinuityReviews      BusinessContinuityReview[]
+  managementReviewsCreated    ManagementReview[] @relation("ManagementReviewCreatedBy")
+  managementReviewsUpdated    ManagementReview[] @relation("ManagementReviewUpdatedBy")
+  managementReviewVersions    ManagementReviewVersion[]
+  managementReviewReviews     ManagementReviewReview[]
+  jobDescriptionsCreated    JobDescription[] @relation("JobDescriptionCreatedBy")
+  jobDescriptionsUpdated    JobDescription[] @relation("JobDescriptionUpdatedBy")
+  jobDescriptionVersions    JobDescriptionVersion[]
+  jobDescriptionReviews     JobDescriptionReview[]
+  workInstructionsCreated    WorkInstruction[] @relation("WorkInstructionCreatedBy")
+  workInstructionsUpdated    WorkInstruction[] @relation("WorkInstructionUpdatedBy")
+  workInstructionVersions    WorkInstructionVersion[]
+  workInstructionReviews     WorkInstructionReview[]
+  // Register relations
+  registersCreated    Register[] @relation("RegisterCreatedBy")
+  registersUpdated    Register[] @relation("RegisterUpdatedBy")
+  registerVersions    RegisterVersion[]
+  registerReviews     RegisterReview[]
+  // COSHH relations
+  coshhsCreated    COSHH[]           @relation("COSHHCreatedBy")
+  coshhsUpdated    COSHH[]           @relation("COSHHUpdatedBy")
+  coshhVersions    COSHHVersion[]
+  coshhReviews     COSHHReview[]
+  riskAssessmentsCreated    RiskAssessment[] @relation("RiskAssessmentCreatedBy")
+  riskAssessmentsUpdated    RiskAssessment[] @relation("RiskAssessmentUpdatedBy")
+  riskAssessmentVersions    RiskAssessmentVersion[]
+  riskAssessmentReviews     RiskAssessmentReview[]
+  // HSE Guidance relations
+  hseGuidancesCreated    HseGuidance[] @relation("HseGuidanceCreatedBy")
+  hseGuidancesUpdated    HseGuidance[] @relation("HseGuidanceUpdatedBy")
+  hseGuidanceVersions    HseGuidanceVersion[]
+  hseGuidanceReviews     HseGuidanceReview[]
+  technicalFilesCreated    TechnicalFile[]           @relation("TechnicalFileCreatedBy")
+  technicalFilesUpdated    TechnicalFile[]           @relation("TechnicalFileUpdatedBy")
+  technicalFileVersions    TechnicalFileVersion[]
+  technicalFileReviews     TechnicalFileReview[]
+  environmentalGuidanceCreated    EnvironmentalGuidance[] @relation("EnvironmentalGuidanceCreatedBy")
+  environmentalGuidanceUpdated    EnvironmentalGuidance[] @relation("EnvironmentalGuidanceUpdatedBy")
+  environmentalGuidanceVersions    EnvironmentalGuidanceVersion[]
+  environmentalGuidanceReviews    EnvironmentalGuidanceReview[]
+  customSectionsCreated    CustomSection[] @relation("CustomSectionCreatedBy")
+  customSectionsUpdated    CustomSection[] @relation("CustomSectionUpdatedBy")
+  customSectionVersions    CustomSectionVersion[]
+  customSectionReviews     CustomSectionReview[]
+  
+  // New relations for permissions system
+  permissions Permission[]
+  groups      UserGroup[]
+  invites     Invite[]    @relation("UserInvites")
+  acceptedInvites Invite[] @relation("AcceptedInvites")
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+  INACTIVE
+}
+
+model Role {
+  id              String            @id @default(uuid())
+  name            String            @unique
+  description     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  permissions     Permission[]
+  groupPermissions GroupPermission[]
+  invites         Invite[]
+  
+  @@index([name])
+}
+
+model Permission {
+  id        String    @id @default(uuid())
+  userId    String
+  systemId  String    // Which system/module this permission applies to
+  roleId    String
+  expiry    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?   // Who granted this permission
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, systemId, roleId])
+  @@index([userId])
+  @@index([systemId])
+  @@index([expiry])
+}
+
+model Group {
+  id               String            @id @default(uuid())
+  name             String            @unique
+  description      String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  users            UserGroup[]
+  groupPermissions GroupPermission[]
+  
+  @@index([name])
+}
+
+model UserGroup {
+  id        String   @id @default(uuid())
+  userId    String
+  groupId   String
+  createdAt DateTime @default(now())
+  addedBy   String?  // Who added user to group
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+}
+
+model GroupPermission {
+  id        String   @id @default(uuid())
+  groupId   String
+  systemId  String
+  roleId    String
+  expiry    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  @@unique([groupId, systemId, roleId])
+  @@index([groupId])
+  @@index([systemId])
+  @@index([expiry])
+}
+
+model Invite {
+  id        String      @id @default(uuid())
+  name      String
+  email     String
+  systemId  String
+  roleId    String?     // Default role for the invite
+  role      Role?       @relation(fields: [roleId], references: [id])
+  invitedBy String
+  status    InviteStatus @default(PENDING)
+  token     String      @unique // For invite verification
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+  userId    String?     // Link to User when invite is accepted
+  acceptedBy  String?     // Who accepted the invite // <--- ADD THIS LINE
+  acceptedByUser User? @relation("AcceptedInvites", fields: [acceptedBy], references: [id]) // 
+  
+  user      User?       @relation("UserInvites", fields: [userId], references: [id])
+  
+  @@index([email])
+  @@index([token])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+// Audit trail for permission changes
+model PermissionAudit {
+  id        String   @id @default(uuid())
+  action    String   // GRANTED, REVOKED, MODIFIED
+  userId    String
+  systemId  String
+  roleId    String
+  performedBy String
+  details   Json?    // Additional context
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([performedBy])
+  @@index([createdAt])
+}
+
+model PolicyCategory {
+  id          String    @id @default(uuid())
+  title       String
+  order       Int       @default(0)
+  policies    Policy[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archived    Boolean   @default(false)
+  highlighted Boolean   @default(false)
+}
+
+model Policy {
+  id            String          @id @default(uuid())
+  title         String
+  version       String
+  issueDate     DateTime
+  location      String
+  content       String?         @db.Text
+  categoryId    String
+  category      PolicyCategory  @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User            @relation("PolicyCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?           @relation("PolicyUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  documents     Document[]
+  versions      PolicyVersion[]
+  archived      Boolean         @default(false)
+  order         Int             @default(0)
+  highlighted   Boolean         @default(false)
+  approved      Boolean         @default(false)
+}
+
+model PolicyVersion {
+  id          String   @id @default(uuid())
+  policyId    String
+  policy      Policy   @relation(fields: [policyId], references: [id])
+  version     String
+  issueDate   DateTime
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  documentId  String?
+  document    Document? @relation(fields: [documentId], references: [id])
+}
+
+model Document {
+  id                String            @id @default(uuid())
+  title             String
+  fileUrl           String
+  fileType          String
+  size              Int
+  uploadedById      String
+  uploadedBy        User              @relation(fields: [uploadedById], references: [id])
+  uploadedAt        DateTime          @default(now())
+  relatedEntityId   String?
+  relatedEntityType String?
+  policyId          String?
+  policy            Policy?           @relation(fields: [policyId], references: [id])
+  versions          DocumentVersion[]
+  policyVersions    PolicyVersion[]
+  audits            Audit[]          
+  manualId         String?
+  manual           Manual?           @relation(fields: [manualId], references: [id])
+  manualVersions   ManualVersion[]
+  procedureId       String?
+  procedure         Procedure?        @relation(fields: [procedureId], references: [id])
+  procedureVersions ProcedureVersion[]  
+  formId            String?
+  form              Form?             @relation(fields: [formId], references: [id])
+  formVersions      FormVersion[]
+  certificateId    String?
+  certificate       Certificate?       @relation(fields: [certificateId], references: [id])
+  certificateVersions CertificateVersion[]
+  correctiveActionId       String?
+  correctiveAction         CorrectiveAction?        @relation(fields: [correctiveActionId], references: [id])
+  correctiveActionVersions CorrectiveActionVersion[]
+  businessContinuityId       String?
+  businessContinuity         BusinessContinuity?        @relation(fields: [businessContinuityId], references: [id])
+  businessContinuityVersions BusinessContinuityVersion[]
+  managementReviewId       String?
+  managementReview         ManagementReview?        @relation(fields: [managementReviewId], references: [id])
+  managementReviewVersions ManagementReviewVersion[]
+  jobDescriptionId       String?
+  jobDescription         JobDescription?        @relation(fields: [jobDescriptionId], references: [id])
+  jobDescriptionVersions JobDescriptionVersion[]
+  workInstructionId       String?
+  workInstruction         WorkInstruction?        @relation(fields: [workInstructionId], references: [id])
+  workInstructionVersions WorkInstructionVersion[]
+  // COSHH relations
+  coshhId          String?
+  coshh            COSHH?           @relation(fields: [coshhId], references: [id])
+  coshhVersions    COSHHVersion[]
+  riskAssessmentId       String?
+  riskAssessment         RiskAssessment?        @relation(fields: [riskAssessmentId], references: [id])
+  riskAssessmentVersions RiskAssessmentVersion[]
+  // Register relations
+  registerId       String?
+  register         Register?        @relation(fields: [registerId], references: [id])
+  registerVersions RegisterVersion[]
+  // HSE guidance relations
+  hseGuidanceId       String?
+  hseGuidance         HseGuidance?        @relation(fields: [hseGuidanceId], references: [id])
+  hseGuidanceVersions HseGuidanceVersion[]
+  technicalFileId          String?
+  technicalFile            TechnicalFile?           @relation(fields: [technicalFileId], references: [id])
+  technicalFileVersions    TechnicalFileVersion[]
+  environmentalGuidanceId           String?
+  environmentalGuidance             EnvironmentalGuidance? @relation(fields: [environmentalGuidanceId], references: [id])
+  environmentalGuidanceVersions     EnvironmentalGuidanceVersion[]
+  customSectionId    String?
+  customSection      CustomSection?    @relation("CustomSectionDocuments", fields: [customSectionId], references: [id], onDelete: Cascade)
+  customSectionVersions CustomSectionVersion[] @relation("CustomSectionVersionDocument")
+}
+
+model DocumentVersion {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+  version     String
+  fileUrl     String
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  notes       String?  @db.Text
+}
+
+
+model RootCause {
+  id        String   @id @default(uuid())
+  name      String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AchievementRate {
+  id        String   @id @default(uuid())
+  name      String
+  timely    Int
+  overdue   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CostOfQuality {
+  id        String   @id @default(uuid())
+  name      String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Audit {
+  id                String          @id @default(uuid())
+  number            Int             @unique
+  title             String
+  plannedStartDate  DateTime
+  actualStartDate   DateTime?
+  followUpDate      DateTime?
+  dateCompleted     DateTime?
+  auditorId         String?
+  auditor           User?           @relation("AuditorAudits", fields: [auditorId], references: [id])
+  externalAuditor   String?
+  status            String          @default("not_started") // not_started, in_progress, completed
+  createNextAudit   Boolean         @default(false)
+  nextAuditDate     DateTime?
+  createdById       String
+  createdBy         User            @relation("CreatedAudits", fields: [createdById], references: [id])
+  updatedById       String?
+  updatedBy         User?           @relation("UpdatedAudits", fields: [updatedById], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  documents         Document[]      // This references the relation in Document model
+  auditDocuments    AuditDocument[]
+  archived          Boolean         @default(false)
+}
+
+model AuditDocument {
+  id        String   @id @default(uuid())
+  auditId   String
+  audit     Audit    @relation(fields: [auditId], references: [id])
+  docType   String   // procedure, manual, register
+  docId     String   // The ID or identifier of the document
+  docName   String   // The name of the document
+  createdAt DateTime @default(now())
+}
+
+//Interested Parties 
+model InterestedParty {
+  id                  String   @id @default(uuid())
+  name                String
+  description         String?  @db.Text
+  needsExpectations   String?  @db.Text
+  initialLikelihood   Int      @default(3)
+  initialSeverity     Int      @default(3)
+  controlsRecommendations String? @db.Text
+  residualLikelihood  Int      @default(1)
+  residualSeverity    Int      @default(3)
+  riskLevel           Int      // Calculated field (initialLikelihood * initialSeverity)
+  residualRiskLevel   Int      // Calculated field (residualLikelihood * residualSeverity)
+  createdById         String
+  createdBy           User     @relation("InterestedPartyCreatedBy", fields: [createdById], references: [id])
+  updatedById         String?
+  updatedBy           User?    @relation("InterestedPartyUpdatedBy", fields: [updatedById], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  archived            Boolean  @default(false)
+  order               Int      @default(0)
+  versions            InterestedPartyVersion[]
+  reviews             InterestedPartyReview[]
+}
+
+// Version tracking for Interested Party
+model InterestedPartyVersion {
+  id                  String   @id @default(uuid())
+  interestedPartyId   String
+  interestedParty     InterestedParty @relation(fields: [interestedPartyId], references: [id], onDelete: Cascade)
+  version             String
+  name                String
+  description         String?  @db.Text
+  needsExpectations   String?  @db.Text
+  initialLikelihood   Int
+  initialSeverity     Int
+  controlsRecommendations String? @db.Text
+  residualLikelihood  Int
+  residualSeverity    Int
+  riskLevel           Int
+  residualRiskLevel   Int
+  amendmentDetails    String?  @db.Text
+  createdById         String
+  createdBy           User     @relation(fields: [createdById], references: [id])
+  createdAt           DateTime @default(now())
+  
+  @@index([interestedPartyId])
+}
+
+// Review tracking for Interested Party
+model InterestedPartyReview {
+  id                  String   @id @default(uuid())
+  interestedPartyId   String
+  interestedParty     InterestedParty @relation(fields: [interestedPartyId], references: [id], onDelete: Cascade)
+  reviewerName        String
+  reviewDetails       String?  @db.Text
+  reviewDate          DateTime
+  nextReviewDate      DateTime?
+  createdById         String
+  createdBy           User     @relation(fields: [createdById], references: [id])
+  createdAt           DateTime @default(now())
+  
+  @@index([interestedPartyId])
+}
+
+//Organizational Context 
+model OrganizationalContext {
+  id                  String    @id @default(uuid())
+  category            String    // political, social, economic, technology, legal, environmental
+  subCategory         String    // strength, weakness, opportunity, threat
+  issue               String
+  initialLikelihood   Int
+  initialSeverity     Int
+  initialRiskLevel    Int       // Calculated field (likelihood * severity)
+  controlsRecommendations String @db.Text
+  residualLikelihood  Int
+  residualSeverity    Int
+  residualRiskLevel   Int       // Calculated field (residualLikelihood * residualSeverity)
+  objectives          String[]  // Array of linked objectives
+  createdById         String
+  createdBy           User      @relation("OrgContextCreatedBy", fields: [createdById], references: [id])
+  updatedById         String?
+  updatedBy           User?     @relation("OrgContextUpdatedBy", fields: [updatedById], references: [id])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  archived            Boolean   @default(false)
+  versions            OrganizationalContextVersion[]
+  reviews             OrganizationalContextReview[]
+}
+
+// Version tracking for Organizational Context
+model OrganizationalContextVersion {
+  id                  String   @id @default(uuid())
+  organizationalContextId String
+  organizationalContext OrganizationalContext @relation(fields: [organizationalContextId], references: [id], onDelete: Cascade)
+  version             String
+  category            String
+  subCategory         String
+  issue               String
+  initialLikelihood   Int
+  initialSeverity     Int
+  initialRiskLevel    Int
+  controlsRecommendations String @db.Text
+  residualLikelihood  Int
+  residualSeverity    Int
+  residualRiskLevel   Int
+  objectives          String[]
+  amendmentDetails    String?  @db.Text
+  createdById         String
+  createdBy           User     @relation(fields: [createdById], references: [id])
+  createdAt           DateTime @default(now())
+  
+  @@index([organizationalContextId])
+}
+
+// Review tracking for Organizational Context
+model OrganizationalContextReview {
+  id                  String   @id @default(uuid())
+  organizationalContextId String
+  organizationalContext OrganizationalContext @relation(fields: [organizationalContextId], references: [id], onDelete: Cascade)
+  reviewerName        String
+  reviewDetails       String?  @db.Text
+  reviewDate          DateTime
+  nextReviewDate      DateTime?
+  createdById         String
+  createdBy           User     @relation(fields: [createdById], references: [id])
+  createdAt           DateTime @default(now())
+  
+  @@index([organizationalContextId])
+}
+
+model Objective {
+  id                  String    @id @default(uuid())
+  source              String?
+  categories          String[]  // Array of categories: Quality, Environmental, H&S, Business, Information Security, Valuing People
+  objective           String
+  target              String    @db.Text
+  resourcesRequired   String    @db.Text
+  progressToDate      String    @db.Text
+  who                 String
+  dueDate             DateTime?
+  likelihood          Int       @default(1)
+  severity            Int       @default(1)
+  riskLevel           Int       @default(1) // Calculated field (likelihood * severity)
+  dateCompleted       DateTime?
+  completed           Boolean   @default(false)
+  createdById         String
+  createdBy           User      @relation("ObjectiveCreatedBy", fields: [createdById], references: [id])
+  updatedById         String?
+  updatedBy           User?     @relation("ObjectiveUpdatedBy", fields: [updatedById], references: [id])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  archived            Boolean   @default(false)
+}
+
+// Version tracking for Objectives Section
+model ObjectiveSectionVersion {
+  id                  String   @id @default(uuid())
+  version             String
+  amendmentDetails    String?  @db.Text
+  createdById         String
+  createdBy           User     @relation(fields: [createdById], references: [id])
+  createdAt           DateTime @default(now())
+}
+
+// Review tracking for Objectives Section
+model ObjectiveSectionReview {
+  id                  String   @id @default(uuid())
+  reviewerName        String
+  reviewDetails       String?  @db.Text
+  reviewDate          DateTime
+  nextReviewDate      DateTime?
+  createdById         String
+  createdBy           User     @relation(fields: [createdById], references: [id])
+  createdAt           DateTime @default(now())
+}
+
+// Maintenance 
+model Maintenance {
+  id                String    @id @default(uuid())
+  name              String
+  category          String    // "Maintenance" or "Calibration"
+  subCategory       String
+  supplier          String?
+  serialNumber      String?
+  reference         String?
+  actionRequired    String
+  frequency         String    // "Daily", "Weekly", "Monthly", "Quarterly", "Yearly", "Two Yearly", etc.
+  dueDate           DateTime
+  owner             String
+  allocatedTo       String?
+  dateCompleted     DateTime?
+  completed         Boolean   @default(false)
+  createNext        Boolean   @default(false)
+  nextDueDate       DateTime?
+  tolerance         String?   // Added tolerance field for calibration items
+  createdById       String
+  createdBy         User      @relation("MaintenanceCreatedBy", fields: [createdById], references: [id])
+  updatedById       String?
+  updatedBy         User?     @relation("MaintenanceUpdatedBy", fields: [updatedById], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  archived          Boolean   @default(false)
+  documents         MaintenanceDocument[]
+}
+
+// Section-level version tracking for Maintenance
+model MaintenanceSectionVersion {
+  id                String   @id @default(uuid())
+  version           String
+  amendmentDetails  String?  @db.Text
+  createdById       String
+  createdBy         User     @relation(fields: [createdById], references: [id])
+  createdAt         DateTime @default(now())
+}
+
+// Section-level review tracking for Maintenance
+model MaintenanceSectionReview {
+  id                String   @id @default(uuid())
+  reviewerName      String
+  reviewDetails     String?  @db.Text
+  reviewDate        DateTime
+  nextReviewDate    DateTime?
+  createdById       String
+  createdBy         User     @relation(fields: [createdById], references: [id])
+  createdAt         DateTime @default(now())
+}
+
+model MaintenanceDocument {
+  id                String    @id @default(uuid())
+  maintenanceId     String
+  maintenance       Maintenance @relation(fields: [maintenanceId], references: [id], onDelete: Cascade)
+  title             String
+  fileUrl           String
+  fileType          String
+  size              Int
+  uploadedById      String
+  uploadedBy        User      @relation(fields: [uploadedById], references: [id])
+  uploadedAt        DateTime  @default(now())
+  versions          MaintenanceDocumentVersion[]
+}
+
+model MaintenanceDocumentVersion {
+  id                String    @id @default(uuid())
+  documentId        String
+  document          MaintenanceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  version           String
+  fileUrl           String
+  createdById       String
+  createdBy         User      @relation(fields: [createdById], references: [id])
+  createdAt         DateTime  @default(now())
+  notes             String?   @db.Text
+}
+
+// Improvement Register with separate document model
+model ImprovementRegister {
+  id                      String    @id @default(uuid())
+  number                  Int
+  numberSuffix            String?
+  category                String
+  otherCategory           String?
+  type                    String
+  description             String    @db.Text
+  originator              String?
+  evaluatedForSimilar     Boolean   @default(false)
+  requiresRiskAnalysis    Boolean   @default(false)
+  affectedPolicies        Boolean   @default(false)
+  justified               Boolean   @default(false)
+  containmentAction       String?   @db.Text
+  rootCauseType           String?
+  rootCause               String?   @db.Text
+  correctiveAction        String?   @db.Text
+  comments                String?   @db.Text
+  internalOwnerId         String?
+  internalOwner           User?     @relation("ImprovementInternalOwner", fields: [internalOwnerId], references: [id])
+  externalOwner           String?
+  internalRaisedById      String?
+  internalRaisedBy        User?     @relation("ImprovementInternalRaisedBy", fields: [internalRaisedById], references: [id])
+  externalRaisedBy        String?
+  dateRaised              DateTime
+  dateDue                 DateTime?
+  dateActionTaken         DateTime?
+  likelihoodRating        Int?
+  severityRating          Int?
+  restrictedAccess        Boolean   @default(false)
+  restrictedUsers         String[]
+  dateCompleted           DateTime?
+  completedById           String?
+  completedBy             User?     @relation("ImprovementCompletedBy", fields: [completedById], references: [id])
+  effectivenessOfAction   String?   @db.Text
+  cost                    Float     @default(0)
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  archived                Boolean   @default(false)
+  documents               ImprovementDocument[] // Changed to use the dedicated document model
+}
+
+// Dedicated document model for Improvement Register
+model ImprovementDocument {
+  id                String    @id @default(uuid())
+  improvementId     String
+  improvement       ImprovementRegister @relation(fields: [improvementId], references: [id], onDelete: Cascade)
+  title             String
+  fileUrl           String
+  fileType          String
+  size              Int
+  uploadedById      String
+  uploadedBy        User      @relation(fields: [uploadedById], references: [id])
+  uploadedAt        DateTime  @default(now())
+  versions          ImprovementDocumentVersion[]
+}
+
+// Version tracking for Improvement Documents
+model ImprovementDocumentVersion {
+  id                String    @id @default(uuid())
+  documentId        String
+  document          ImprovementDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  version           String
+  fileUrl           String
+  createdById       String
+  createdBy         User      @relation(fields: [createdById], references: [id])
+  createdAt         DateTime  @default(now())
+  notes             String?   @db.Text
+}
+
+// Section-level version tracking for Improvement Register
+model ImprovementRegisterSectionVersion {
+  id                String   @id @default(uuid())
+  version           String
+  amendmentDetails  String?  @db.Text
+  createdById       String
+  createdBy         User     @relation(fields: [createdById], references: [id])
+  createdAt         DateTime @default(now())
+}
+
+// Section-level review tracking for Improvement Register
+model ImprovementRegisterSectionReview {
+  id                String   @id @default(uuid())
+  reviewerName      String
+  reviewDetails     String?  @db.Text
+  reviewDate        DateTime
+  nextReviewDate    DateTime?
+  createdById       String
+  createdBy         User     @relation(fields: [createdById], references: [id])
+  createdAt         DateTime @default(now())
+}
+
+// Statement of Applicability 
+
+model StatementOfApplicabilityControl {
+  id                String   @id @default(uuid())
+  clause            String
+  title             String
+  description       String   @db.Text
+  applicable        Boolean  @default(false)
+  relatedControls   String?  @db.Text
+  justification     String?  @db.Text
+  implemented       Boolean  @default(false)
+  dateLastAssessed  DateTime?
+  section           String
+  order             Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model StatementOfApplicabilityVersion {
+  id                String   @id @default(uuid())
+  number            Int
+  date              DateTime
+  details           String   @db.Text
+  updatedBy         String
+  createdAt         DateTime @default(now())
+}
+
+model StatementOfApplicabilityReview {
+  id                String   @id @default(uuid())
+  reviewedBy        String
+  details           String   @db.Text
+  reviewDate        DateTime
+  nextReviewDate    DateTime?
+  createdAt         DateTime @default(now())
+}
+
+
+
+// Supplier 
+
+
+model Supplier {
+  id                  String    @id @default(uuid())
+  name                String
+  provisionOf         String    @db.Text
+  certifications      String?   @db.Text
+  contactName         String?
+  address             String?   @db.Text
+  contactNumber       String?
+  website             String?
+  dateAdded           DateTime  @default(now())
+  reviewFrequency     String?
+  lastReviewDate      DateTime?
+  lastReviewedBy      String?
+  riskLikelihood      Int       @default(1)
+  riskSeverity        Int       @default(1)
+  controlsRecommendations String? @db.Text
+  residualLikelihood  Int       @default(1)
+  residualSeverity    Int       @default(1)
+  archived            Boolean   @default(false)
+  documents           SupplierDocument[] // Changed to use dedicated document model
+  reviews             SupplierReview[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model SupplierReview {
+  id            String    @id @default(uuid())
+  supplierId    String
+  supplier      Supplier  @relation(fields: [supplierId], references: [id])
+  reviewedBy    String
+  details       String?   @db.Text
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model SupplierVersion {
+  id            String    @id @default(uuid())
+  number        Int
+  date          DateTime
+  details       String?   @db.Text
+  updatedBy     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Add these new models for Supplier documents
+
+model SupplierDocument {
+  id                String    @id @default(uuid())
+  supplierId        String
+  supplier          Supplier  @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  title             String
+  fileUrl           String
+  fileType          String
+  size              Int
+  uploadedById      String
+  uploadedBy        User      @relation(fields: [uploadedById], references: [id])
+  uploadedAt        DateTime  @default(now())
+  versions          SupplierDocumentVersion[]
+}
+
+model SupplierDocumentVersion {
+  id                String    @id @default(uuid())
+  documentId        String
+  document          SupplierDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  version           String
+  fileUrl           String
+  createdById       String
+  createdBy         User      @relation(fields: [createdById], references: [id])
+  createdAt         DateTime  @default(now())
+  notes             String?   @db.Text
+}
+
+
+// Employee model
+model Employee {
+  id             String           @id @default(uuid())
+  firstName      String
+  surname        String
+  occupation     String
+  department     String
+  profilePicture String?
+  systemUserId   String?          @unique
+  systemUser     User?            @relation(fields: [systemUserId], references: [id])
+  archived       Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  employeeSkills EmployeeSkill[]
+  documents      EmployeeDocument[]
+}
+
+// Skill model
+model Skill {
+  id             String           @id @default(uuid())
+  name           String
+  description    String
+  frequencyDays  Int              @default(0)
+  departments    String[]
+  mandatory      Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  employeeSkills EmployeeSkill[]
+}
+
+// EmployeeSkill (junction table)
+model EmployeeSkill {
+  id             String           @id @default(uuid())
+  employeeId     String
+  employee       Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  skillId        String
+  skill          Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  dateCompleted  DateTime
+  evidence       String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([employeeId, skillId])
+}
+
+// Employee Document
+model EmployeeDocument {
+  id             String           @id @default(uuid())
+  employeeId     String
+  employee       Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  title          String
+  fileUrl        String
+  fileType       String
+  uploadedById   String
+  uploadedBy     User             @relation(fields: [uploadedById], references: [id])
+  uploadedAt     DateTime         @default(now())
+}
+
+
+//Legal Register
+
+model LegalRegisterDocument {
+  id                String       @id @default(uuid())
+  title             String
+  fileUrl           String
+  fileType          String
+  size              Int
+  uploadedById      String
+  uploadedBy        User         @relation(fields: [uploadedById], references: [id])
+  uploadedAt        DateTime     @default(now())
+  legalRegisterId   String
+  legalRegister     LegalRegister @relation(fields: [legalRegisterId], references: [id])
+}
+
+model LegalRegister {
+  id                String    @id @default(uuid())
+  section           String
+  legislation       String
+  webAddress        String?
+  regulator         String
+  requirements      String    @db.Text
+  applicability     String    @db.Text
+  complianceRating  String
+  furtherAction     String?   @db.Text
+  reviewed          DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  createdById       String
+  createdBy         User      @relation("LegalRegisterCreatedBy", fields: [createdById], references: [id])
+  updatedById       String?
+  updatedBy         User?     @relation("LegalRegisterUpdatedBy", fields: [updatedById], references: [id])
+  archived          Boolean   @default(false)
+  approved          Boolean   @default(false)
+  regions           String[]
+  versions          LegalRegisterVersion[]
+  reviews           LegalRegisterReview[]
+  documents         LegalRegisterDocument[]
+}
+
+model LegalRegisterVersion {
+  id              String       @id @default(uuid())
+  legalRegisterId String
+  legalRegister   LegalRegister @relation(fields: [legalRegisterId], references: [id])
+  date            DateTime
+  details         String
+  updatedById     String
+  updatedBy       User         @relation(fields: [updatedById], references: [id])
+  createdAt       DateTime     @default(now())
+}
+
+model LegalRegisterReview {
+  id              String       @id @default(uuid())
+  legalRegisterId String
+  legalRegister   LegalRegister @relation(fields: [legalRegisterId], references: [id])
+  reviewedById    String
+  reviewedBy      User         @relation(fields: [reviewedById], references: [id])
+  details         String
+  reviewDate      DateTime
+  nextReviewDate  DateTime?
+  createdAt       DateTime     @default(now())
+}
+
+
+
+//SIDEBAR COMPONENTS 
+
+//MANUAL SECTION 
+
+
+model ManualCategory {
+  id          String    @id @default(uuid())
+  title       String
+  order       Int       @default(0)
+  manuals     Manual[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archived    Boolean   @default(false)
+  highlighted Boolean   @default(false)
+}
+
+model Manual {
+  id            String          @id @default(uuid())
+  title         String
+  version       String
+  issueDate     DateTime
+  location      String
+  content       String?         @db.Text
+  categoryId    String
+  category      ManualCategory  @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User            @relation("ManualCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?           @relation("ManualUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  documents     Document[]
+  versions      ManualVersion[]
+  archived      Boolean         @default(false)
+  order         Int             @default(0)
+  highlighted   Boolean         @default(false)
+  approved      Boolean         @default(false)
+  reviews       ManualReview[]
+}
+
+model ManualVersion {
+  id          String   @id @default(uuid())
+  manualId    String
+  manual      Manual   @relation(fields: [manualId], references: [id])
+  version     String
+  issueDate   DateTime
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  documentId  String?
+  document    Document? @relation(fields: [documentId], references: [id])
+}
+
+model ManualReview {
+  id            String      @id @default(uuid())
+  manualId      String
+  reviewedById  String
+  reviewerName  String?
+  details       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  manual        Manual      @relation(fields: [manualId], references: [id], onDelete: Cascade)
+  reviewedBy    User        @relation(fields: [reviewedById], references: [id])
+}
+
+
+
+// Procedure section 
+model ProcedureCategory {
+  id          String      @id @default(uuid())
+  title       String
+  order       Int         @default(0)
+  procedures  Procedure[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  archived    Boolean     @default(false)
+  highlighted Boolean     @default(false)
+}
+
+model Procedure {
+  id            String      @id @default(uuid())
+  title         String
+  version       String
+  issueDate     DateTime
+  location      String
+  content       String?
+  categoryId    String
+  createdById   String
+  updatedById   String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  category      ProcedureCategory @relation(fields: [categoryId], references: [id])
+  createdBy     User        @relation("ProcedureCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User?       @relation("ProcedureUpdatedBy", fields: [updatedById], references: [id])
+  versions      ProcedureVersion[]
+  documents     Document[]
+  reviews       ProcedureReview[]
+}
+
+model ProcedureVersion {
+  id          String     @id @default(uuid())
+  procedureId String
+  procedure   Procedure  @relation(fields: [procedureId], references: [id])
+  version     String
+  issueDate   DateTime
+  notes       String?    @db.Text
+  createdAt   DateTime   @default(now())
+  createdById String
+  createdBy   User       @relation(fields: [createdById], references: [id])
+  documentId  String?
+  document    Document?  @relation(fields: [documentId], references: [id])
+}
+
+model ProcedureReview {
+  id            String      @id @default(uuid())
+  procedureId   String
+  reviewedById  String
+  reviewerName  String?
+  details       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  procedure     Procedure   @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+  reviewedBy    User        @relation(fields: [reviewedById], references: [id])
+}
+
+
+//Forms section sidebar
+model FormCategory {
+  id          String    @id @default(uuid())
+  title       String
+  order       Int       @default(0)
+  forms       Form[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archived    Boolean   @default(false)
+  highlighted Boolean   @default(false)
+}
+
+model Form {
+  id            String        @id @default(uuid())
+  title         String
+  version       String
+  issueDate     DateTime
+  location      String
+  retentionPeriod String?
+  content       String?       @db.Text
+  categoryId    String
+  category      FormCategory  @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User          @relation("FormCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?         @relation("FormUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  documents     Document[]
+  versions      FormVersion[]
+  archived      Boolean       @default(false)
+  order         Int           @default(0)
+  highlighted   Boolean       @default(false)
+  approved      Boolean       @default(false)
+  reviews       FormReview[]
+}
+
+model FormVersion {
+  id          String    @id @default(uuid())
+  formId      String
+  form        Form      @relation(fields: [formId], references: [id])
+  version     String
+  issueDate   DateTime
+  notes       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  documentId  String?
+  document    Document? @relation(fields: [documentId], references: [id])
+}
+
+model FormReview {
+  id            String      @id @default(uuid())
+  formId        String
+  reviewedById  String
+  reviewerName  String?
+  details       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  form          Form        @relation(fields: [formId], references: [id], onDelete: Cascade)
+  reviewedBy    User        @relation(fields: [reviewedById], references: [id])
+}
+
+//Certificates Section sidebar
+model CertificateCategory {
+  id          String        @id @default(uuid())
+  title       String
+  order       Int           @default(0)
+  certificates Certificate[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  archived    Boolean       @default(false)
+  highlighted Boolean       @default(false)
+}
+
+model Certificate {
+  id            String              @id @default(uuid())
+  title         String
+  version       String
+  issueDate     DateTime
+  location      String
+  content       String?             @db.Text
+  categoryId    String
+  category      CertificateCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User                @relation("CertificateCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?               @relation("CertificateUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  documents     Document[]
+  versions      CertificateVersion[]
+  archived      Boolean             @default(false)
+  order         Int                 @default(0)
+  highlighted   Boolean             @default(false)
+  approved      Boolean             @default(false)
+  reviews       CertificateReview[]
+}
+
+model CertificateVersion {
+  id          String      @id @default(uuid())
+  certificateId String
+  certificate  Certificate @relation(fields: [certificateId], references: [id])
+  version     String
+  issueDate   DateTime
+  notes       String?     @db.Text
+  createdAt   DateTime    @default(now())
+  createdById String
+  createdBy   User        @relation(fields: [createdById], references: [id])
+  documentId  String?
+  document    Document?   @relation(fields: [documentId], references: [id])
+}
+
+model CertificateReview {
+  id            String      @id @default(uuid())
+  certificateId String
+  reviewedById  String
+  reviewerName  String?
+  details       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  certificate   Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  reviewedBy    User        @relation(fields: [reviewedById], references: [id])
+}
+
+model CorrectiveActionCategory {
+  id          String            @id @default(uuid())
+  title       String
+  order       Int               @default(0)
+  correctiveActions    CorrectiveAction[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  archived    Boolean           @default(false)
+  highlighted Boolean           @default(false)
+}
+
+model CorrectiveAction {
+  id            String                  @id @default(uuid())
+  title         String
+  version       String
+  issueDate     DateTime
+  location      String
+  content       String?                 @db.Text
+  categoryId    String
+  category      CorrectiveActionCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User                    @relation("CorrectiveActionCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?                   @relation("CorrectiveActionUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  documents     Document[]
+  versions      CorrectiveActionVersion[]
+  archived      Boolean                 @default(false)
+  order         Int                     @default(0)
+  highlighted   Boolean                 @default(false)
+  approved      Boolean                 @default(false)
+  reviews       CorrectiveActionReview[]
+}
+
+model CorrectiveActionVersion {
+  id                String            @id @default(uuid())
+  correctiveActionId String
+  correctiveAction   CorrectiveAction @relation(fields: [correctiveActionId], references: [id])
+  version           String
+  issueDate         DateTime
+  notes             String?           @db.Text
+  createdAt         DateTime          @default(now())
+  createdById       String
+  createdBy         User              @relation(fields: [createdById], references: [id])
+  documentId        String?
+  document          Document?         @relation(fields: [documentId], references: [id])
+}
+
+model CorrectiveActionReview {
+  id                String            @id @default(uuid())
+  correctiveActionId String
+  reviewedById      String
+  reviewerName      String?
+  details           String
+  reviewDate        DateTime
+  nextReviewDate    DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  correctiveAction  CorrectiveAction  @relation(fields: [correctiveActionId], references: [id], onDelete: Cascade)
+  reviewedBy        User              @relation(fields: [reviewedById], references: [id])
+}
+
+//Business Continuity section sidebar
+model BusinessContinuityCategory {
+  id          String        @id @default(uuid())
+  title       String
+  order       Int           @default(0)
+  businessContinuities BusinessContinuity[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  archived    Boolean       @default(false)
+  highlighted Boolean       @default(false)
+}
+
+model BusinessContinuity {
+  id            String              @id @default(uuid())
+  title         String
+  version       String
+  issueDate     DateTime
+  location      String
+  content       String?             @db.Text
+  categoryId    String
+  category      BusinessContinuityCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User                @relation("BusinessContinuityCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?               @relation("BusinessContinuityUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  documents     Document[]
+  versions      BusinessContinuityVersion[]
+  archived      Boolean             @default(false)
+  order         Int                 @default(0)
+  highlighted   Boolean             @default(false)
+  approved      Boolean             @default(false)
+  reviews       BusinessContinuityReview[]
+}
+
+model BusinessContinuityVersion {
+  id          String   @id @default(uuid())
+  businessContinuityId    String
+  businessContinuity      BusinessContinuity @relation(fields: [businessContinuityId], references: [id])
+  version     String
+  issueDate   DateTime
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  documentId  String?
+  document    Document? @relation(fields: [documentId], references: [id])
+}
+
+model BusinessContinuityReview {
+  id            String      @id @default(uuid())
+  businessContinuityId        String
+  businessContinuity          BusinessContinuity @relation(fields: [businessContinuityId], references: [id])
+  reviewedById  String
+  reviewedBy    User        @relation(fields: [reviewedById], references: [id])
+  reviewerName  String?
+  details       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+//Management Review section sidebar
+model ManagementReviewCategory {
+  id          String        @id @default(uuid())
+  title       String
+  order       Int           @default(0)
+  managementReviews ManagementReview[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  archived    Boolean       @default(false)
+  highlighted Boolean       @default(false)
+}
+
+model ManagementReview {
+  id            String              @id @default(uuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  location      String
+  content       String?             @db.Text
+  categoryId    String
+  category      ManagementReviewCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User                @relation("ManagementReviewCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?               @relation("ManagementReviewUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  documents     Document[]
+  versions      ManagementReviewVersion[]
+  archived      Boolean             @default(false)
+  order         Int                 @default(0)
+  highlighted   Boolean             @default(false)
+  approved      Boolean             @default(false)
+  reviews       ManagementReviewReview[]
+}
+
+model ManagementReviewVersion {
+  id          String   @id @default(uuid())
+  managementReviewId    String
+  managementReview      ManagementReview @relation(fields: [managementReviewId], references: [id])
+  version     String
+  reviewDate   DateTime
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  documentId  String?
+  document    Document? @relation(fields: [documentId], references: [id])
+}
+
+model ManagementReviewReview {
+  id            String      @id @default(uuid())
+  managementReviewId        String
+  managementReview          ManagementReview @relation(fields: [managementReviewId], references: [id])
+  reviewedById  String
+  reviewedBy    User        @relation(fields: [reviewedById], references: [id])
+  reviewerName  String?
+  details       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+
+// Job Description Sidebar Section 
+ model JobDescription {
+  id            String      @id @default(cuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  department    String
+  content       String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  category      JobDescriptionCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User        @relation("JobDescriptionCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("JobDescriptionUpdatedBy", fields: [updatedById], references: [id])
+  versions      JobDescriptionVersion[]
+  reviews       JobDescriptionReview[]
+  documents     Document[]
+}
+
+model JobDescriptionCategory {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  order           Int
+  archived        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  jobDescriptions JobDescription[]
+  highlighted Boolean       @default(false)
+}
+
+model JobDescriptionVersion {
+  id              String         @id @default(cuid())
+  version         String
+  reviewDate      DateTime
+  notes           String?
+  createdAt       DateTime       @default(now())
+  jobDescriptionId String
+  jobDescription  JobDescription @relation(fields: [jobDescriptionId], references: [id])
+  documentId      String?
+  document        Document?      @relation(fields: [documentId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+}
+
+model JobDescriptionReview {
+  id              String         @id @default(cuid())
+  reviewerName    String
+  reviewDate      DateTime
+  nextReviewDate  DateTime?
+  details         String
+  createdAt       DateTime       @default(now())
+  jobDescriptionId String
+  jobDescription  JobDescription @relation(fields: [jobDescriptionId], references: [id])
+  reviewedById    String
+  reviewedBy      User           @relation(fields: [reviewedById], references: [id])
+}
+
+// Work Instruction Sidebar Section 
+model WorkInstruction {
+  id            String      @id @default(cuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  department    String
+  content       String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  category      WorkInstructionCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User        @relation("WorkInstructionCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("WorkInstructionUpdatedBy", fields: [updatedById], references: [id])
+  versions      WorkInstructionVersion[]
+  reviews       WorkInstructionReview[]
+  documents     Document[]
+}
+
+model WorkInstructionCategory {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  order           Int
+  archived        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  workInstructions WorkInstruction[]
+  highlighted Boolean       @default(false)
+}
+
+model WorkInstructionVersion {
+  id              String         @id @default(cuid())
+  version         String
+  reviewDate      DateTime
+  notes           String?
+  createdAt       DateTime       @default(now())
+  workInstructionId String
+  workInstruction  WorkInstruction @relation(fields: [workInstructionId], references: [id])
+  documentId      String?
+  document        Document?      @relation(fields: [documentId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+}
+
+model WorkInstructionReview {
+  id              String         @id @default(cuid())
+  reviewerName    String
+  reviewDate      DateTime
+  nextReviewDate  DateTime?
+  details         String
+  createdAt       DateTime       @default(now())
+  workInstructionId String
+  workInstruction  WorkInstruction @relation(fields: [workInstructionId], references: [id])
+  reviewedById    String
+  reviewedBy      User           @relation(fields: [reviewedById], references: [id])
+}
+
+// COSHH Section
+model COSHHCategory {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  order           Int
+  archived        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  coshhs          COSHH[]
+  highlighted Boolean       @default(false)
+}
+
+model COSHH {
+  id            String      @id @default(cuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  department    String
+  content       String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  category      COSHHCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User        @relation("COSHHCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("COSHHUpdatedBy", fields: [updatedById], references: [id])
+  versions      COSHHVersion[]
+  reviews       COSHHReview[]
+  documents     Document[]
+}
+
+model COSHHVersion {
+  id              String         @id @default(cuid())
+  version         String
+  reviewDate      DateTime
+  notes           String?
+  createdAt       DateTime       @default(now())
+  coshhId         String
+  coshh           COSHH          @relation(fields: [coshhId], references: [id])
+  documentId      String?
+  document        Document?      @relation(fields: [documentId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+}
+
+model COSHHReview {
+  id              String         @id @default(cuid())
+  reviewerName    String
+  reviewDate      DateTime
+  nextReviewDate  DateTime?
+  details         String
+  createdAt       DateTime       @default(now())
+  coshhId         String
+  coshh           COSHH          @relation(fields: [coshhId], references: [id])
+  reviewedById    String
+  reviewedBy      User           @relation(fields: [reviewedById], references: [id])
+}
+
+model RiskAssessmentCategory {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  order           Int
+  archived        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  riskAssessments RiskAssessment[]
+}
+
+model RiskAssessment {
+  id            String      @id @default(cuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  department    String
+  content       String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  category      RiskAssessmentCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User        @relation("RiskAssessmentCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("RiskAssessmentUpdatedBy", fields: [updatedById], references: [id])
+  versions      RiskAssessmentVersion[]
+  reviews       RiskAssessmentReview[]
+  documents     Document[]
+}
+
+model RiskAssessmentVersion {
+  id              String         @id @default(cuid())
+  version         String
+  reviewDate      DateTime
+  notes           String?
+  createdAt       DateTime       @default(now())
+  riskAssessmentId String
+  riskAssessment  RiskAssessment @relation(fields: [riskAssessmentId], references: [id])
+  documentId      String?
+  document        Document?      @relation(fields: [documentId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+}
+
+model RiskAssessmentReview {
+  id              String         @id @default(cuid())
+  reviewerName    String
+  reviewDate      DateTime
+  nextReviewDate  DateTime?
+  details         String
+  createdAt       DateTime       @default(now())
+  riskAssessmentId String
+  riskAssessment  RiskAssessment @relation(fields: [riskAssessmentId], references: [id])
+  reviewedById    String
+  reviewedBy      User           @relation(fields: [reviewedById], references: [id])
+}
+
+// Register Sidebar Section
+model Register {
+  id            String      @id @default(cuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  department    String
+  content       String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  category      RegisterCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User        @relation("RegisterCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("RegisterUpdatedBy", fields: [updatedById], references: [id])
+  versions      RegisterVersion[]
+  reviews       RegisterReview[]
+  documents     Document[]
+}
+
+model RegisterCategory {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  order           Int
+  archived        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  registers       Register[]
+}
+
+model RegisterVersion {
+  id              String         @id @default(cuid())
+  version         String
+  reviewDate      DateTime
+  notes           String?
+  createdAt       DateTime       @default(now())
+  registerId      String
+  register        Register       @relation(fields: [registerId], references: [id])
+  documentId      String?
+  document        Document?      @relation(fields: [documentId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+}
+
+model RegisterReview {
+  id              String         @id @default(cuid())
+  reviewerName    String
+  reviewDate      DateTime
+  nextReviewDate  DateTime?
+  details         String
+  createdAt       DateTime       @default(now())
+  registerId      String
+  register        Register       @relation(fields: [registerId], references: [id])
+  reviewedById    String
+  reviewedBy      User           @relation(fields: [reviewedById], references: [id])
+}
+
+model HseGuidanceCategory {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  order           Int
+  archived        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  hseGuidances    HseGuidance[]
+}
+
+model HseGuidance {
+  id            String      @id @default(cuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  department    String
+  content       String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  category      HseGuidanceCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User        @relation("HseGuidanceCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("HseGuidanceUpdatedBy", fields: [updatedById], references: [id])
+  versions      HseGuidanceVersion[]
+  reviews       HseGuidanceReview[]
+  documents     Document[]
+}
+
+model HseGuidanceVersion {
+  id              String         @id @default(cuid())
+  version         String
+  reviewDate      DateTime
+  notes           String?
+  createdAt       DateTime       @default(now())
+  hseGuidanceId   String
+  hseGuidance     HseGuidance    @relation(fields: [hseGuidanceId], references: [id])
+  documentId      String?
+  document        Document?      @relation(fields: [documentId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+}
+
+model HseGuidanceReview {
+  id              String         @id @default(cuid())
+  reviewerName    String
+  reviewDate      DateTime
+  nextReviewDate  DateTime?
+  details         String
+  createdAt       DateTime       @default(now())
+  hseGuidanceId   String
+  hseGuidance     HseGuidance    @relation(fields: [hseGuidanceId], references: [id])
+  reviewedById    String
+  reviewedBy      User           @relation(fields: [reviewedById], references: [id])
+}
+
+// Technical File Section
+model TechnicalFileCategory {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  order           Int
+  archived        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  technicalFiles  TechnicalFile[]
+  highlighted Boolean       @default(false)
+}
+
+model TechnicalFile {
+  id            String      @id @default(cuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  department    String
+  content       String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  category      TechnicalFileCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User        @relation("TechnicalFileCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("TechnicalFileUpdatedBy", fields: [updatedById], references: [id])
+  versions      TechnicalFileVersion[]
+  reviews       TechnicalFileReview[]
+  documents     Document[]
+}
+
+model TechnicalFileVersion {
+  id              String         @id @default(cuid())
+  version         String
+  reviewDate      DateTime
+  notes           String?
+  createdAt       DateTime       @default(now())
+  technicalFileId String
+  technicalFile   TechnicalFile  @relation(fields: [technicalFileId], references: [id])
+  documentId      String?
+  document        Document?      @relation(fields: [documentId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+}
+
+model TechnicalFileReview {
+  id              String         @id @default(cuid())
+  reviewerName    String
+  reviewDate      DateTime
+  nextReviewDate  DateTime?
+  details         String
+  createdAt       DateTime       @default(now())
+  technicalFileId String
+  technicalFile   TechnicalFile  @relation(fields: [technicalFileId], references: [id])
+  reviewedById    String
+  reviewedBy      User           @relation(fields: [reviewedById], references: [id])
+}
+
+// Environmental Guidance Section
+model EnvironmentalGuidanceCategory {
+  id                    String                @id @default(cuid())
+  title                 String
+  description           String?
+  order                 Int
+  archived              Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  environmentalGuidance EnvironmentalGuidance[]
+}
+
+model EnvironmentalGuidance {
+  id            String      @id @default(cuid())
+  title         String
+  version       String
+  reviewDate    DateTime
+  nextReviewDate DateTime?
+  department    String
+  content       String?
+  highlighted   Boolean     @default(false)
+  approved      Boolean     @default(false)
+  archived      Boolean     @default(false)
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  category      EnvironmentalGuidanceCategory @relation(fields: [categoryId], references: [id])
+  createdById   String
+  createdBy     User        @relation("EnvironmentalGuidanceCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?       @relation("EnvironmentalGuidanceUpdatedBy", fields: [updatedById], references: [id])
+  versions      EnvironmentalGuidanceVersion[]
+  reviews       EnvironmentalGuidanceReview[]
+  documents     Document[]
+}
+
+model EnvironmentalGuidanceVersion {
+  id                    String                @id @default(cuid())
+  version               String
+  reviewDate            DateTime
+  notes                 String?
+  createdAt             DateTime              @default(now())
+  environmentalGuidanceId String
+  environmentalGuidance   EnvironmentalGuidance @relation(fields: [environmentalGuidanceId], references: [id])
+  documentId            String?
+  document              Document?             @relation(fields: [documentId], references: [id])
+  createdById           String
+  createdBy             User                  @relation(fields: [createdById], references: [id])
+}
+
+model EnvironmentalGuidanceReview {
+  id                    String                @id @default(cuid())
+  reviewerName          String
+  reviewDate            DateTime
+  nextReviewDate        DateTime?
+  details               String
+  createdAt             DateTime              @default(now())
+  environmentalGuidanceId String
+  environmentalGuidance   EnvironmentalGuidance @relation(fields: [environmentalGuidanceId], references: [id])
+  reviewedById          String
+  reviewedBy            User                  @relation(fields: [reviewedById], references: [id])
+}
+
+// Custom Section Category
+model CustomSectionCategory {
+  id              String           @id @default(uuid())
+  title           String
+  description     String?          @db.Text
+  order           Int              @default(0)
+  archived        Boolean          @default(false)
+  highlighted     Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  customSections  CustomSection[]  @relation("CustomSectionCategory")
+}
+
+// Custom Section
+model CustomSection {
+  id              String                @id @default(uuid())
+  title           String                // Changed from 'name' to align with other sections
+  description     String?               @db.Text
+  version         String                // Added for version control
+  issueDate       DateTime              // Added for versioning
+  reviewDate      DateTime?             // Added for review workflows
+  nextReviewDate  DateTime?             // Added for review workflows
+  department      String?               // Added to align with other sections
+  content         String?               @db.Text // Added for section-specific content
+  icon            String                // Retained for sidebar UI
+  order           Int                   @default(0)
+  highlighted     Boolean               @default(false) // Added for UI interaction
+  approved        Boolean               @default(false) // Added for approval workflows
+  archived        Boolean               @default(false) // Added for archiving
+  isActive        Boolean               @default(true)  // Retained for activation status
+  restrictedAccess Boolean              @default(false) // Added for access control
+  restrictedUsers String[]              // Added for granular permissions
+  metadata        Json?                 // Added for flexible section-specific settings
+  categoryId      String?               // Added for category organization
+  category        CustomSectionCategory? @relation("CustomSectionCategory", fields: [categoryId], references: [id])
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  createdById     String
+  createdBy       User                  @relation("CustomSectionCreatedBy", fields: [createdById], references: [id])
+  updatedById     String?
+  updatedBy       User?                 @relation("CustomSectionUpdatedBy", fields: [updatedById], references: [id])
+  documents       Document[]            @relation("CustomSectionDocuments")
+  versions        CustomSectionVersion[] @relation("CustomSectionVersions")
+  reviews         CustomSectionReview[]  @relation("CustomSectionReviews")
+}
+
+// Custom Section Version
+model CustomSectionVersion {
+  id              String         @id @default(uuid())
+  version         String
+  issueDate       DateTime
+  notes           String?        @db.Text
+  createdAt       DateTime       @default(now())
+  customSectionId String
+  customSection   CustomSection  @relation("CustomSectionVersions", fields: [customSectionId], references: [id], onDelete: Cascade)
+  documentId      String?
+  document        Document?      @relation("CustomSectionVersionDocument", fields: [documentId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+}
+
+// Custom Section Review
+model CustomSectionReview {
+  id              String         @id @default(uuid())
+  reviewerName    String?        // Added for consistency
+  reviewDate      DateTime
+  nextReviewDate  DateTime?      // Added for review scheduling
+  details         String         @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  customSectionId String
+  customSection   CustomSection  @relation("CustomSectionReviews", fields: [customSectionId], references: [id], onDelete: Cascade)
+  reviewedById    String
+  reviewedBy      User           @relation(fields: [reviewedById], references: [id])
+}
