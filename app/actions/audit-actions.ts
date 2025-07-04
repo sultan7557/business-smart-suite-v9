@@ -23,6 +23,21 @@ export async function createAudit(formData: FormData) {
     const dateCompleted = formData.get("dateCompleted") as string
     const createNextAudit = formData.has("createNextAudit")
     const nextAuditDate = formData.get("nextAuditDate") as string
+    let status = formData.get("status") as string || "not_started"
+
+    // Set status to in_progress if actualStartDate is today or earlier and not completed
+    if (actualStartDate && status !== "completed") {
+      const today = new Date()
+      const actual = new Date(actualStartDate)
+      today.setHours(0,0,0,0)
+      actual.setHours(0,0,0,0)
+      if (actual <= today) {
+        status = "in_progress"
+      }
+    }
+    if (dateCompleted) {
+      status = "completed"
+    }
 
     // Get selected documents
     const procedures = formData.getAll("procedures") as string[]
@@ -57,7 +72,8 @@ export async function createAudit(formData: FormData) {
         createNextAudit,
         nextAuditDate: nextAuditDate ? new Date(nextAuditDate) : null,
         createdById: user.id as string,
-        status: "not_started",
+        status,
+        hasGeneratedNextAudit: false,
       },
     })
 
@@ -72,6 +88,45 @@ export async function createAudit(formData: FormData) {
 
       await prisma.auditDocument.createMany({
         data: auditDocuments,
+      })
+    }
+
+    // Handle next audit creation if needed
+    if (
+      createNextAudit &&
+      nextAuditDate &&
+      status === "completed" &&
+      !audit.hasGeneratedNextAudit
+    ) {
+      // Create next audit with copied fields
+      const nextAudit = await prisma.audit.create({
+        data: {
+          number: nextNumber + 1,
+          title,
+          plannedStartDate: new Date(nextAuditDate),
+          auditorId: auditorId || null,
+          externalAuditor: externalAuditor || null,
+          createdById: user.id as string,
+          status: "not_started",
+          hasGeneratedNextAudit: false,
+        },
+      })
+      // Copy audit documents to next audit
+      if (documents.length > 0) {
+        const nextAuditDocuments = documents.map(doc => ({
+          auditId: nextAudit.id,
+          docType: doc.docType,
+          docId: doc.docId,
+          docName: doc.docName,
+        }))
+        await prisma.auditDocument.createMany({
+          data: nextAuditDocuments,
+        })
+      }
+      // Mark original audit as having generated next audit
+      await prisma.audit.update({
+        where: { id: audit.id },
+        data: { hasGeneratedNextAudit: true },
       })
     }
 
@@ -100,7 +155,21 @@ export async function updateAudit(id: string, formData: FormData) {
     const dateCompleted = formData.get("dateCompleted") as string
     const createNextAudit = formData.has("createNextAudit")
     const nextAuditDate = formData.get("nextAuditDate") as string
-    const status = formData.get("status") as string || "not_started"
+    let status = formData.get("status") as string || "not_started"
+
+    // Set status to in_progress if actualStartDate is today or earlier and not completed
+    if (actualStartDate && status !== "completed") {
+      const today = new Date()
+      const actual = new Date(actualStartDate)
+      today.setHours(0,0,0,0)
+      actual.setHours(0,0,0,0)
+      if (actual <= today) {
+        status = "in_progress"
+      }
+    }
+    if (dateCompleted) {
+      status = "completed"
+    }
 
     // Get selected documents
     const procedures = formData.getAll("procedures") as string[]
@@ -113,6 +182,9 @@ export async function updateAudit(id: string, formData: FormData) {
       ...manuals.map(doc => ({ docType: "manual", docId: doc, docName: doc })),
       ...registers.map(doc => ({ docType: "register", docId: doc, docName: doc })),
     ]
+
+    // Fetch the current audit to check hasGeneratedNextAudit
+    const currentAudit = await prisma.audit.findUnique({ where: { id } })
 
     // Update the audit
     const audit = await prisma.audit.update({
@@ -129,16 +201,14 @@ export async function updateAudit(id: string, formData: FormData) {
         nextAuditDate: nextAuditDate ? new Date(nextAuditDate) : null,
         updatedById: user.id as string,
         status,
+        hasGeneratedNextAudit: currentAudit?.hasGeneratedNextAudit || false,
       },
     })
 
     // Update audit documents
-    // First delete existing audit documents
     await prisma.auditDocument.deleteMany({
       where: { auditId: id },
     })
-
-    // Then create new ones
     if (documents.length > 0) {
       const auditDocuments = documents.map(doc => ({
         auditId: audit.id,
@@ -146,9 +216,53 @@ export async function updateAudit(id: string, formData: FormData) {
         docId: doc.docId,
         docName: doc.docName,
       }))
-
       await prisma.auditDocument.createMany({
         data: auditDocuments,
+      })
+    }
+
+    // Handle next audit creation if needed
+    if (
+      createNextAudit &&
+      nextAuditDate &&
+      status === "completed" &&
+      !audit.hasGeneratedNextAudit
+    ) {
+      // Find the next available audit number
+      const maxAudit = await prisma.audit.findFirst({
+        orderBy: { number: "desc" },
+        select: { number: true },
+      })
+      const nextNumber = maxAudit && maxAudit.number ? maxAudit.number + 1 : 1
+      // Create next audit with copied fields
+      const nextAudit = await prisma.audit.create({
+        data: {
+          number: nextNumber,
+          title,
+          plannedStartDate: new Date(nextAuditDate),
+          auditorId: auditorId || null,
+          externalAuditor: externalAuditor || null,
+          createdById: user.id as string,
+          status: "not_started",
+          hasGeneratedNextAudit: false,
+        },
+      })
+      // Copy audit documents to next audit
+      if (documents.length > 0) {
+        const nextAuditDocuments = documents.map(doc => ({
+          auditId: nextAudit.id,
+          docType: doc.docType,
+          docId: doc.docId,
+          docName: doc.docName,
+        }))
+        await prisma.auditDocument.createMany({
+          data: nextAuditDocuments,
+        })
+      }
+      // Mark original audit as having generated next audit
+      await prisma.audit.update({
+        where: { id: audit.id },
+        data: { hasGeneratedNextAudit: true },
       })
     }
 

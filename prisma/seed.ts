@@ -501,6 +501,7 @@ async function main() {
         plannedStartDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         status: "not_started",
         createdById: admin.id,
+        number: 2,
         auditDocuments: {
           create: [
             {
@@ -526,6 +527,7 @@ async function main() {
         status: "in_progress",
         auditorId: manager.id,
         createdById: admin.id,
+        number: 1,
         auditDocuments: {
           create: [
             {

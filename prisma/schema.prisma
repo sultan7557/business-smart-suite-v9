@@ -454,6 +454,7 @@ model Audit {
   documents         Document[]      // This references the relation in Document model
   auditDocuments    AuditDocument[]
   archived          Boolean         @default(false)
+  hasGeneratedNextAudit Boolean @default(false)
 }
 
 model AuditDocument {

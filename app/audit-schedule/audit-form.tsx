@@ -25,6 +25,7 @@ export default function AuditForm({ users, audit, procedures = [], manuals = [],
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState(audit?.status || "not_started")
+  const [hasGeneratedNextAudit, setHasGeneratedNextAudit] = useState(audit?.hasGeneratedNextAudit || false)
   
   // Get selected document IDs from audit
   const selectedDocuments = audit?.auditDocuments || []
@@ -38,6 +39,28 @@ export default function AuditForm({ users, audit, procedures = [], manuals = [],
     .filter((doc: any) => doc.docType === "register")
     .map((doc: any) => doc.docId)
 
+  // Auto-set status to in_progress if actual start date is today or earlier and not completed
+  useEffect(() => {
+    const actualStartInput = document.getElementById("actualStartDate") as HTMLInputElement
+    if (actualStartInput) {
+      const handleActualStartChange = () => {
+        if (actualStartInput.value && status !== "completed") {
+          const today = new Date()
+          const actual = new Date(actualStartInput.value)
+          today.setHours(0,0,0,0)
+          actual.setHours(0,0,0,0)
+          if (actual <= today) {
+            setStatus("in_progress")
+          }
+        }
+      }
+      actualStartInput.addEventListener("change", handleActualStartChange)
+      return () => {
+        actualStartInput.removeEventListener("change", handleActualStartChange)
+      }
+    }
+  }, [status])
+
   // Update status when dateCompleted changes
   useEffect(() => {
     const dateCompletedInput = document.getElementById("dateCompleted") as HTMLInputElement
@@ -47,7 +70,6 @@ export default function AuditForm({ users, audit, procedures = [], manuals = [],
           setStatus("completed")
         }
       }
-      
       dateCompletedInput.addEventListener("change", handleDateCompletedChange)
       return () => {
         dateCompletedInput.removeEventListener("change", handleDateCompletedChange)
@@ -295,8 +317,12 @@ export default function AuditForm({ users, audit, procedures = [], manuals = [],
           id="createNextAudit" 
           name="createNextAudit" 
           defaultChecked={audit?.createNextAudit || false}
+          disabled={hasGeneratedNextAudit && status === "completed"}
         />
         <Label htmlFor="createNextAudit">Create the next audit job</Label>
+        {hasGeneratedNextAudit && status === "completed" && (
+          <span className="text-sm text-yellow-600 ml-2">A next audit has already been generated for this audit.</span>
+        )}
       </div>
 
       <div>
