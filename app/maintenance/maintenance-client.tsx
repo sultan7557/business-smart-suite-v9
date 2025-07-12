@@ -269,6 +269,7 @@ export default function MaintenanceClient({
       );
     }
 
+    // Replace the table rendering with a flexbox-based layout
     return (
       <Card className="mb-6 overflow-hidden">
         <CardHeader className="bg-gray-700 text-white py-3 cursor-pointer" onClick={onToggle}>
@@ -277,7 +278,7 @@ export default function MaintenanceClient({
               {isExpanded ? <ChevronDown className="h-4 w-4 mr-2" /> : <ChevronRight className="h-4 w-4 mr-2" />}
               {title}
             </CardTitle>
-          <div className="flex space-x-2">
+            <div className="flex space-x-2">
               <Button 
                 variant="ghost" 
                 className="text-white"
@@ -288,134 +289,121 @@ export default function MaintenanceClient({
               >
                 <Printer className="h-4 w-4" />
               </Button>
-            <Button
-              variant="outline"
-              size="sm"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleToggleArchived();
                 }}
-            >
-              {localShowArchived ? "Hide Archived" : "Show Archived"}
-            </Button>
-            {canEdit && (
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
+              >
+                {localShowArchived ? "Hide Archived" : "Show Archived"}
+              </Button>
+              {canEdit && (
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
                     <Button size="sm" onClick={(e) => e.stopPropagation()}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add New
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Add New Maintenance Item</DialogTitle>
-                  </DialogHeader>
-                  <MaintenanceForm
-                    users={users}
-                    subCategories={subCategories}
-                    onClose={() => setIsDialogOpen(false)}
-                  />
-                </DialogContent>
-              </Dialog>
-            )}
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add New
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Add New Maintenance Item</DialogTitle>
+                    </DialogHeader>
+                    <MaintenanceForm
+                      users={users}
+                      subCategories={subCategories}
+                      onClose={() => {
+                        setIsDialogOpen(false);
+                        // Refresh the page to show the new item
+                        window.location.reload();
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </div>
         </CardHeader>
         {isExpanded && (
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="px-4 py-2 text-left">Item</th>
-                  <th className="px-4 py-2 text-left">Ref</th>
-                  <th className="px-4 py-2 text-left">Serial</th>
-                  <th className="px-4 py-2 text-left">Action</th>
-                  <th className="px-4 py-2 text-left">Supplier</th>
-                  <th className="px-4 py-2 text-left">Tolerance</th>
-                  <th className="px-4 py-2 text-left">Frequency</th>
-                  <th className="px-4 py-2 text-center">Due date</th>
-                  <th className="px-4 py-2 text-left">Owner</th>
-                  <th className="px-4 py-2 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.map((item) => (
-                  <tr key={item.id} className={`border-b ${item.archived ? "bg-gray-100" : ""}`}>
-                    <td className="px-4 py-2">
-                      <div className="font-medium">{item.name}</div>
-                    </td>
-                    <td className="px-4 py-2">{item.reference || "-"}</td>
-                    <td className="px-4 py-2">{item.serialNumber || "-"}</td>
-                    <td className="px-4 py-2">
-                      <div className="text-sm max-w-[200px] truncate" title={item.actionRequired}>
-                        {item.actionRequired}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2">{item.supplier || "-"}</td>
-                    <td className="px-4 py-2">-</td>
-                    <td className="px-4 py-2">{item.frequency}</td>
-                    <td className="px-4 py-2">
-                      <div className={`text-center font-bold rounded-md p-2 ${getDueDateColor(item.dueDate)}`}>
-                        {format(new Date(item.dueDate), "dd/MM/yyyy")}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2">{item.owner}</td>
-                    <td className="px-4 py-2">
-                      <div className="flex space-x-1">
+          <CardContent className="p-0">
+            <div className="hidden md:flex w-full bg-gray-100 font-semibold text-sm border-b">
+              <div className="flex-[2] px-2 py-2">Item</div>
+              <div className="flex-1 px-2 py-2">Ref</div>
+              <div className="flex-1 px-2 py-2">Serial</div>
+              <div className="flex-[2] px-2 py-2">Action</div>
+              <div className="flex-1 px-2 py-2">Supplier</div>
+              <div className="flex-1 px-2 py-2">Tolerance</div>
+              <div className="flex-1 px-2 py-2">Frequency</div>
+              <div className="flex-1 px-2 py-2 text-center">Due date</div>
+              <div className="flex-1 px-2 py-2">Owner</div>
+              <div className="flex-1 px-2 py-2 text-center">Actions</div>
+            </div>
+            <div className="flex flex-col w-full">
+              {filteredItems.map((item) => (
+                <div key={item.id} className={`flex flex-wrap md:flex-nowrap border-b items-center ${item.archived ? "bg-gray-100" : ""}`} style={{ minWidth: 0 }}>
+                  <div className="flex-[2] px-2 py-2 truncate" title={item.name}>{item.name}</div>
+                  <div className="flex-1 px-2 py-2 truncate" title={item.reference}>{item.reference || "-"}</div>
+                  <div className="flex-1 px-2 py-2 truncate" title={item.serialNumber}>{item.serialNumber || "-"}</div>
+                  <div className="flex-[2] px-2 py-2 truncate" title={item.actionRequired}>{item.actionRequired}</div>
+                  <div className="flex-1 px-2 py-2 truncate" title={item.supplier}>{item.supplier || "-"}</div>
+                  <div className="flex-1 px-2 py-2">-</div>
+                  <div className="flex-1 px-2 py-2 truncate" title={item.frequency}>{item.frequency}</div>
+                  <div className="flex-1 px-2 py-2">
+                    <div className={`text-center font-bold rounded-md p-2 ${getDueDateColor(item.dueDate)}`}>{format(new Date(item.dueDate), "dd/MM/yyyy")}</div>
+                  </div>
+                  <div className="flex-1 px-2 py-2 truncate" title={item.owner}>{item.owner}</div>
+                  <div className="flex-1 px-2 py-2">
+                    <div className="flex space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setViewDialogOpen(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      {canEdit && (
                         <Button 
                           variant="ghost" 
                           size="icon"
                           onClick={() => {
                             setSelectedItem(item);
-                            setViewDialogOpen(true);
+                            setEditDialogOpen(true);
                           }}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
-                        
-                        {canEdit && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => {
-                              setSelectedItem(item);
-                              setEditDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
-                        
-                        {canEdit && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleArchiveToggle(item.id)}
-                            disabled={loadingAction[item.id] === 'archive'}
-                          >
-                            {loadingAction[item.id] === 'archive' ? <Loader size="sm" ariaLabel="Archiving..." /> : <Archive className="h-4 w-4" />}
-                          </Button>
-                        )}
-                        
-                        {canDelete && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleDelete(item.id)}
-                            disabled={loadingAction[item.id] === 'delete'}
-                          >
-                            {loadingAction[item.id] === 'delete' ? <Loader size="sm" ariaLabel="Deleting..." /> : <Trash2 className="h-4 w-4 text-red-500" />}
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
+                      )}
+                      {canEdit && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleArchiveToggle(item.id)}
+                          disabled={loadingAction[item.id] === 'archive'}
+                        >
+                          {loadingAction[item.id] === 'archive' ? <Loader size="sm" ariaLabel="Archiving..." /> : <Archive className="h-4 w-4" />}
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleDelete(item.id)}
+                          disabled={loadingAction[item.id] === 'delete'}
+                        >
+                          {loadingAction[item.id] === 'delete' ? <Loader size="sm" ariaLabel="Deleting..." /> : <Trash2 className="h-4 w-4 text-red-500" />}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
         )}
       </Card>
     );

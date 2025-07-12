@@ -44,6 +44,7 @@ model User {
   maintenanceUpdated        Maintenance[] @relation("MaintenanceUpdatedBy")
   maintenanceDocuments      MaintenanceDocument[] @relation()
   maintenanceDocumentVersions MaintenanceDocumentVersion[] @relation()
+  maintenanceDocumentReviews  MaintenanceDocumentReview[]
   maintenanceSectionVersions MaintenanceSectionVersion[]
   maintenanceSectionReviews  MaintenanceSectionReview[]
   // Improvement Register navbar
@@ -707,6 +708,7 @@ model MaintenanceDocument {
   uploadedBy        User      @relation(fields: [uploadedById], references: [id])
   uploadedAt        DateTime  @default(now())
   versions          MaintenanceDocumentVersion[]
+  reviews           MaintenanceDocumentReview[]
 }
 
 model MaintenanceDocumentVersion {
@@ -719,6 +721,20 @@ model MaintenanceDocumentVersion {
   createdBy         User      @relation(fields: [createdById], references: [id])
   createdAt         DateTime  @default(now())
   notes             String?   @db.Text
+}
+
+model MaintenanceDocumentReview {
+  id                String    @id @default(uuid())
+  documentId        String
+  document          MaintenanceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  reviewerName      String?
+  reviewDetails     String    @db.Text
+  reviewDate        DateTime
+  nextReviewDate    DateTime?
+  createdById       String
+  createdBy         User      @relation(fields: [createdById], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 // Improvement Register with separate document model

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import { createMaintenanceItem, updateMaintenanceItem, completeMaintenanceItem, getSubCategories } from "@/app/actions/maintenance-actions"
 import { format } from "date-fns"
 import DocumentUpload from "./document-upload"
@@ -128,14 +128,21 @@ export default function MaintenanceForm({ item, users = [], subCategories = [], 
       }
 
       if (result.success) {
-        toast({
-          title: item ? "Maintenance item updated" : "Maintenance item created",
+        toast.success(item ? "Maintenance item updated" : "Maintenance item created", {
           description: item
             ? "The maintenance item has been updated successfully."
             : "A new maintenance item has been created successfully.",
         });
         
-        if (isDialog && onClose) {
+        if (!item && isDialog && onClose) {
+          onClose();
+          // Show toast after closing dialog for new entry
+          setTimeout(() => {
+            toast.success("Maintenance item created", {
+              description: "A new maintenance item has been created successfully.",
+            });
+          }, 100);
+        } else if (isDialog && onClose) {
           onClose();
         } else {
           router.push("/maintenance");
@@ -146,10 +153,8 @@ export default function MaintenanceForm({ item, users = [], subCategories = [], 
       }
     } catch (error: any) {
       console.error("Error saving maintenance item:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "An error occurred while saving the maintenance item.",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -158,10 +163,8 @@ export default function MaintenanceForm({ item, users = [], subCategories = [], 
 
   const handleComplete = async () => {
     if (!dateCompleted) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please enter a completion date",
-        variant: "destructive",
       });
       return;
     }
@@ -176,8 +179,7 @@ export default function MaintenanceForm({ item, users = [], subCategories = [], 
       );
       
       if (result.success) {
-        toast({
-          title: "Maintenance item completed",
+        toast.success("Maintenance item completed", {
           description: "The maintenance item has been marked as completed.",
         });
         
@@ -192,10 +194,8 @@ export default function MaintenanceForm({ item, users = [], subCategories = [], 
       }
     } catch (error: any) {
       console.error("Error completing maintenance item:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "An error occurred while completing the maintenance item.",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);

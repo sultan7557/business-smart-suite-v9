@@ -5,7 +5,7 @@ import { getUser } from "@/lib/auth"
 // GET - List reviews for a document
 export async function GET(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const user = await getUser()
@@ -14,7 +14,7 @@ export async function GET(
     }
 
     const reviews = await prisma.maintenanceDocumentReview.findMany({
-      where: { documentId: params.documentId },
+      where: { documentId: params.id },
       include: {
         createdBy: {
           select: {
@@ -40,7 +40,7 @@ export async function GET(
 // POST - Add a new review
 export async function POST(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const user = await getUser()
@@ -59,7 +59,7 @@ export async function POST(
 
     const review = await prisma.maintenanceDocumentReview.create({
       data: {
-        documentId: params.documentId,
+        documentId: params.id,
         reviewerName,
         reviewDetails,
         reviewDate: new Date(reviewDate),
@@ -88,7 +88,7 @@ export async function POST(
 // DELETE - Delete a review
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const user = await getUser()
