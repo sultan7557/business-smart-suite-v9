@@ -76,13 +76,13 @@ export default function EmployeeDetail({
   const documents = employee.documents || []
   
   // Check if employee has mandatory skills
-  const hasMandatorySkills = employeeSkills.some(es => 
-    mandatorySkills.some(ms => ms.id === es.skillId)
+  const hasMandatorySkills = employeeSkills.some((es: any) => 
+    mandatorySkills.some((ms: any) => ms.id === es.skillId)
   )
   
   // Check if employee has incomplete mandatory training
-  const hasIncompleteMandatoryTraining = mandatorySkills.some(skill => 
-    !employeeSkills.some(es => es.skillId === skill.id)
+  const hasIncompleteMandatoryTraining = mandatorySkills.some((skill: any) => 
+    !employeeSkills.some((es: any) => es.skillId === skill.id)
   )
   
   // Add local loading states for skill/document actions
@@ -296,30 +296,24 @@ export default function EmployeeDetail({
         })
         return
       }
-      
       setIsSubmitting(true)
       setLoadingAction((prev) => ({ ...prev, uploadDocument: 'uploadDocument' }))
-      
-      const result = await uploadEmployeeDocument(
-        employee.id,
-        documentFile,
-        documentType
-      )
+
+      const formData = new FormData()
+      formData.append('file', documentFile)
+      formData.append('title', documentType)
+      const result = await uploadEmployeeDocument(employee.id, formData)
       setLoadingAction((prev) => ({ ...prev, uploadDocument: null }))
-      
       if (!result.success) {
         throw new Error(result.error || "Failed to upload document")
       }
-      
       toast({
         title: "Success",
         description: "Document uploaded successfully",
       })
-      
       // Reset form
       setDocumentType("General Document")
       setDocumentFile(null)
-      
       router.refresh()
     } catch (error: any) {
       setLoadingAction((prev) => ({ ...prev, uploadDocument: null }))
@@ -579,8 +573,8 @@ export default function EmployeeDetail({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {mandatorySkills.map(skill => {
-                    const employeeSkill = employeeSkills.find(es => es.skillId === skill.id)
+                  {mandatorySkills.map((skill: any) => {
+                    const employeeSkill = employeeSkills.find((es: any) => es.skillId === skill.id)
                     return (
                       <tr key={skill.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -605,10 +599,10 @@ export default function EmployeeDetail({
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  onClick={() => handleDeleteSkill(employeeSkill.id)}
-                                  disabled={!!loadingAction[employeeSkill.id]}
+                                  onClick={() => handleDeleteSkill((employeeSkill as any).id)}
+                                  disabled={!!loadingAction[(employeeSkill as any).id]}
                                 >
-                                  {loadingAction[employeeSkill.id] === 'deleteSkill' ? <Loader size="sm" ariaLabel="Deleting..." /> : 'Delete'}
+                                  {loadingAction[(employeeSkill as any).id] === 'deleteSkill' ? <Loader size="sm" ariaLabel="Deleting..." /> : 'Delete'}
                                 </Button>
                               )}
                             </>
@@ -714,8 +708,8 @@ export default function EmployeeDetail({
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {employeeSkills.map(es => {
-                        const skill = skills.find(s => s.id === es.skillId)
+                      {employeeSkills.map((es: any) => {
+                        const skill = skills.find((s: any) => s.id === es.skillId)
                         return (
                           <tr key={es.id}>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -825,7 +819,7 @@ export default function EmployeeDetail({
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {documents.map(doc => (
+                        {documents.map((doc: any) => (
                           <tr key={doc.id}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
@@ -841,12 +835,17 @@ export default function EmployeeDetail({
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <a 
-                                href={doc.fileUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
+                                href={`/api/training/documents/${doc.id}/download?download=1`} 
+                                download
                                 className="text-blue-600 hover:underline mr-4"
                               >
                                 Download
+                              </a>
+                              <a 
+                                href={`/training/${employee.id}/documents/${doc.id}`} 
+                                className="text-blue-600 hover:underline mr-4"
+                              >
+                                Preview
                               </a>
                               {canDelete && (
                                 <Button 

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "@/components/ui/use-toast"
 import { createLegalRegister, updateLegalRegister } from "../actions/legal-register-actions"
 import { Loader } from '@/components/ui/loader'
+import LegalRegisterDocumentUpload from "./legal-register-document-upload"
+import Link from "next/link"
 
 // Section options
 const sectionOptions = [
@@ -49,6 +51,28 @@ export default function LegalRegisterForm({ legalRegister }: LegalRegisterFormPr
   const [section, setSection] = useState(legalRegister?.section || "")
   const [complianceRating, setComplianceRating] = useState(legalRegister?.complianceRating || "")
   const [regions, setRegions] = useState<string[]>(legalRegister?.regions || ["England"])
+  const [documents, setDocuments] = useState<any[]>(legalRegister?.documents || [])
+  const [loadingDocuments, setLoadingDocuments] = useState(false)
+
+  // Fetch documents if editing
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!legalRegister?.id) return
+      setLoadingDocuments(true)
+      try {
+        const res = await fetch(`/api/legal-register/documents?legalRegisterId=${legalRegister.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          setDocuments(data || [])
+        }
+      } catch (e) {
+        // ignore
+      } finally {
+        setLoadingDocuments(false)
+      }
+    }
+    if (legalRegister?.id) fetchDocuments()
+  }, [legalRegister?.id])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -208,26 +232,86 @@ export default function LegalRegisterForm({ legalRegister }: LegalRegisterFormPr
               ))}
             </div>
           </div>
-
-          <div className="pt-4">
-            <h3 className="font-medium mb-2">Documents</h3>
-            {legalRegister ? (
-              <div className="border p-4 rounded-md">
-                <p className="text-gray-500 mb-4">Drag documents onto the grey box below to upload</p>
-                <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
-                  <p className="text-sm text-gray-500">Drag and drop your files here, or click to browse</p>
-                </div>
-              </div>
-            ) : (
-              <div className="border p-4 rounded-md">
-                <p className="text-gray-500">
-                  Documents can only be uploaded against existing items. Once you have saved this new item then you will
-                  be able to upload documents.
-                </p>
-              </div>
-            )}
-          </div>
         </div>
+      </div>
+
+      {/* Document upload and table section moved below the grid for full width */}
+      <div className="pt-4">
+        <h3 className="font-medium mb-2">Documents</h3>
+        {legalRegister ? (
+          <div className="border p-4 rounded-md">
+            <LegalRegisterDocumentUpload legalRegisterId={legalRegister.id} onUploadComplete={() => {
+              // Re-fetch documents after upload
+              (async () => {
+                setLoadingDocuments(true)
+                try {
+                  const res = await fetch(`/api/legal-register/documents?legalRegisterId=${legalRegister.id}`)
+                  if (res.ok) {
+                    const data = await res.json()
+                    setDocuments(data || [])
+                  }
+                } finally {
+                  setLoadingDocuments(false)
+                }
+              })()
+            }} />
+            <div className="mt-4 overflow-x-auto">
+              {loadingDocuments ? (
+                <p className="text-gray-500">Loading documents...</p>
+              ) : documents.length > 0 ? (
+                <div className="border rounded-md overflow-hidden">
+                  <table className="min-w-[800px] divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploaded By</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {documents.map((doc) => (
+                        <tr key={doc.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">{doc.title}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">{doc.uploadedBy ? doc.uploadedBy.name : "Unknown"}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">{doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleString() : "-"}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={doc.fileUrl} download target="_blank" rel="noopener noreferrer">
+                                Download
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/legal-register/${legalRegister.id}/documents/${doc.id}`}>Preview</Link>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-500">No documents uploaded yet.</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="border p-4 rounded-md">
+            <p className="text-gray-500">
+              Documents can only be uploaded against existing items. Once you have saved this new item then you will be able to upload documents.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-start space-x-2">

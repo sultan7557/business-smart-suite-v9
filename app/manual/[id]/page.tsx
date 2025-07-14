@@ -133,7 +133,7 @@ export default async function ManualPage({ params }: ManualPageProps) {
         <TabsContent value="document" className="border">
           {latestDocument ? (
             <DocumentPreview
-              documentUrl={latestDocument.fileUrl}
+              documentUrl={`/api/documents/download/${latestDocument.fileUrl}`}
               documentType={latestDocument.fileType}
               title={manual.title}
             />

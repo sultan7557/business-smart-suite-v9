@@ -4,6 +4,8 @@
 import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma"
 import { getUser } from "@/lib/auth"
+import { writeFile, mkdir } from "fs/promises"
+import { join } from "path"
 import * as XLSX from 'xlsx'
 
 // Employee actions
@@ -328,27 +330,46 @@ export async function deleteEmployeeSkill(id: string) {
 }
 
 // Document actions
-export async function uploadEmployeeDocument(employeeId: string, file: File, title: string) {
+export async function uploadEmployeeDocument(employeeId: string, formData: FormData) {
   try {
     const user = await getUser()
     if (!user) {
       return { success: false, error: "Not authenticated" }
     }
-    
-    // In a real app, you would upload the file to a storage service
-    // For this demo, we'll create a mock URL
-    const fileUrl = `/api/documents/download/${Date.now()}-${file.name}`
-    
+    const file = formData.get("file") as File
+    const title = formData.get("title") as string || (file ? file.name : "")
+    if (!file) {
+      return { success: false, error: "No file provided" }
+    }
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      return { success: false, error: "File size must be less than 10MB" }
+    }
+    // Create a unique filename
+    const timestamp = Date.now()
+    const filename = `${timestamp}-${file.name}`
+    const uploadDir = join(process.cwd(), "public", "uploads")
+    const filePath = join(uploadDir, filename)
+    // Ensure the uploads directory exists
+    try {
+      await mkdir(uploadDir, { recursive: true })
+    } catch (err) {
+      // Directory exists already
+    }
+    // Save the file
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    await writeFile(filePath, buffer)
+    // Create document record
     const document = await prisma.employeeDocument.create({
       data: {
         employeeId,
         title: title || file.name,
-        fileUrl,
+        fileUrl: `/uploads/${filename}`,
         fileType: file.type,
         uploadedById: user.id as string
       }
     })
-    
     revalidatePath(`/training/${employeeId}`)
     return { success: true, data: document }
   } catch (error) {

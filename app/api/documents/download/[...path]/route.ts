@@ -12,11 +12,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Invalid path parameter" }, { status: 400 })
     }
     
-    // Join all path segments to get the full filename
-    const filename = resolvedParams.path.join("/")
+    // Join all path segments to get the full path
+    const fullPath = resolvedParams.path.join("/")
+    
+    // Remove leading slash if present and extract the filename
+    const cleanPath = fullPath.startsWith("/") ? fullPath.slice(1) : fullPath
+    
+    // If the path starts with "uploads/", remove it since we'll add it back
+    const filename = cleanPath.startsWith("uploads/") ? cleanPath.slice(8) : cleanPath
 
     // Get the file path on the server
-    const filePath = path.join(process.cwd(), "public", "uploads", path.basename(filename))
+    const filePath = path.join(process.cwd(), "public", "uploads", filename)
+
+    console.log(`API: Attempting to serve file: ${filePath}`)
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -50,6 +58,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (ext in contentTypeMap) {
       contentType = contentTypeMap[ext]
     }
+
+    console.log(`API: Successfully serving file: ${filename} with content-type: ${contentType}`)
 
     // Return the file
     return new NextResponse(fileBuffer, {

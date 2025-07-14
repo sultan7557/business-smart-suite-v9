@@ -82,12 +82,10 @@ export default async function LegalRegisterDetailPage({ params }: LegalRegisterD
   return (
     <div className="p-4">
       <div className="mb-6">
-        <Button variant="outline" asChild>
-          <Link href="/legal-register" className="flex items-center">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to legal register
-          </Link>
-        </Button>
+        <a href="/legal-register" className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to legal register
+        </a>
       </div>
 
       <div className="flex justify-between items-center mb-6">
@@ -400,6 +398,9 @@ export default async function LegalRegisterDetailPage({ params }: LegalRegisterD
                                   <Download className="h-4 w-4 mr-1" />
                                   Download
                                 </a>
+                              </Button>
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link href={`/legal-register/${id}/documents/${doc.id}`}>Preview</Link>
                               </Button>
                             </td>
                           </tr>

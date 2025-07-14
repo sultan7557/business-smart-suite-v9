@@ -120,6 +120,11 @@ export default function LegalRegisterDocumentUpload({ legalRegisterId, onUploadC
         description: "Document uploaded successfully",
       })
 
+      // Reset form state after upload
+      setFile(null)
+      setTitle("")
+      if (fileInputRef.current) fileInputRef.current.value = ""
+
       if (onUploadComplete) {
         onUploadComplete(document)
       }

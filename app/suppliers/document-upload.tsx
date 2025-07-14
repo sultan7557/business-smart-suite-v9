@@ -14,9 +14,10 @@ import { Loader } from '@/components/ui/loader'
 
 interface DocumentUploadProps {
   supplierId: string
+  onUploadComplete?: () => void
 }
 
-export default function DocumentUpload({ supplierId }: DocumentUploadProps) {
+export default function DocumentUpload({ supplierId, onUploadComplete }: DocumentUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [notes, setNotes] = useState("")
   const [isUploading, setIsUploading] = useState(false)
@@ -60,6 +61,7 @@ export default function DocumentUpload({ supplierId }: DocumentUploadProps) {
         setSelectedFile(null);
         setNotes("");
         router.refresh();
+        if (onUploadComplete) onUploadComplete();
       } else {
         throw new Error(result.error || 'Failed to upload document');
       }

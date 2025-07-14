@@ -15,12 +15,10 @@ export default async function NewLegalRegisterPage() {
   return (
     <div className="p-4">
       <div className="mb-6">
-        <Button variant="outline" asChild>
-          <Link href="/legal-register" className="flex items-center">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to legal register
-          </Link>
-        </Button>
+        <a href="/legal-register" className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to legal register
+        </a>
       </div>
 
       <h1 className="text-2xl font-bold mb-6">Add/Edit legal register</h1>

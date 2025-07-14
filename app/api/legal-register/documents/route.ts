@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { getUser } from "@/lib/auth"
+import { writeFile } from "fs/promises"
+import path from "path"
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,9 +24,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Legal Register ID is required" }, { status: 400 })
     }
 
-    // In a real app, you would upload the file to a cloud storage service
-    // and get a URL back. For this demo, we'll create a mock URL.
-    const fileUrl = `/api/legal-register/documents/download/${Date.now()}-${file.name}`
+    // Save file to public/uploads
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const timestamp = Date.now()
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")
+    const fileName = `${timestamp}-${sanitizedFileName}`
+    const uploadDir = path.join(process.cwd(), "public", "uploads")
+    const filePath = path.join(uploadDir, fileName)
+    await writeFile(filePath, buffer)
+    const fileUrl = `/uploads/${fileName}`
 
     // Create document record in database
     const document = await prisma.legalRegisterDocument.create({

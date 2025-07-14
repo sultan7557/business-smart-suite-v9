@@ -81,6 +81,8 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
     residualSeverity: "1",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [docList, setDocList] = useState(documents)
+  const [loadingDocs, setLoadingDocs] = useState(false)
   
   useEffect(() => {
     if (supplier) {
@@ -102,8 +104,26 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
         residualLikelihood: supplier.residualLikelihood?.toString() || "1",
         residualSeverity: supplier.residualSeverity?.toString() || "1",
       })
+      // Fetch documents dynamically on mount
+      fetchDocuments()
     }
   }, [supplier])
+
+  const fetchDocuments = async () => {
+    if (!supplier?.id) return
+    setLoadingDocs(true)
+    try {
+      const res = await fetch(`/api/suppliers/documents?supplierId=${supplier.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setDocList(data || [])
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      setLoadingDocs(false)
+    }
+  }
   
   const handleChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
@@ -365,24 +385,25 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                     <p>Drag documents onto the grey box below to upload</p>
                     <p>Or select the files you wish to upload</p>
                   </div>
-                  <DocumentUpload supplierId={supplier.id} />
+                  <DocumentUpload supplierId={supplier.id} onUploadComplete={fetchDocuments} />
                 </div>
               )}
-              
-              {documents.length > 0 ? (
+              {loadingDocs ? (
+                <p className="text-gray-500">Loading documents...</p>
+              ) : docList.length > 0 ? (
                 <div className="space-y-2">
-                  {documents.map((doc) => (
+                  {docList.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
-                      <Link 
-                        href={`/suppliers/${supplier?.id}/documents/${doc.id}`}
-                        className="flex-1 text-blue-600 hover:underline"
-                      >
+                      <span className="flex-1 text-blue-600 hover:underline">
                         {doc.title}
-                      </Link>
+                      </span>
                       <div className="flex items-center space-x-2">
                         <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/suppliers/${supplier?.id}/documents/${doc.id}`}>Preview</Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" asChild>
                           <a 
-                            href={`/api/documents/${doc.id}/download`} 
+                            href={`/api/suppliers/documents/${doc.id}/download`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-gray-600 hover:text-gray-900"
@@ -390,7 +411,6 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                             Download
                           </a>
                         </Button>
-                        {/* Add delete functionality here if needed */}
                       </div>
                     </div>
                   ))}

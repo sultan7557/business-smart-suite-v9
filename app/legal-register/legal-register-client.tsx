@@ -440,13 +440,14 @@ export default function LegalRegisterClient({
                   <TableHead>Compliance</TableHead>
                   <TableHead>Further Action</TableHead>
                   <TableHead>Reviewed</TableHead>
+                  <TableHead>Web Address</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLegalRegisters.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-4">
+                    <TableCell colSpan={10} className="text-center py-4">
                       No legal register items found
                     </TableCell>
                   </TableRow>
@@ -477,6 +478,20 @@ export default function LegalRegisterClient({
                       </TableCell>
                       <TableCell className="max-w-xs truncate">{item.furtherAction}</TableCell>
                       <TableCell>{item.reviewed ? format(new Date(item.reviewed), "dd-MMM-yyyy") : "Never"}</TableCell>
+                      <TableCell>
+                        {item.webAddress ? (
+                          <a
+                            href={item.webAddress}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            {item.webAddress}
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-1">
                           {canEdit && (
@@ -528,6 +543,7 @@ export default function LegalRegisterClient({
                   <TableHead>Applicability</TableHead>
                   <TableHead>Compliance</TableHead>
                   <TableHead>Further Action</TableHead>
+                  <TableHead>Reviewed</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>

@@ -248,15 +248,11 @@ export async function login(username: string, password: string, rememberMe = fal
       .sign(await getJwtSecretKey())
 
     // Determine secure flag based on environment
-    // For HTTP, secure should be false. For HTTPS, secure should be true.
-    // process.env.NODE_ENV === "production" is a common way to handle this.
-    // If you are running local dev on HTTPS, you might need to explicitly set it to true.
-    // const secureCookie = process.env.NODE_ENV === "production";
     const secureCookie = false;
     console.log(`Login: Setting cookie with secure: ${secureCookie} (NODE_ENV: ${process.env.NODE_ENV})`);
 
     // Set cookie
-    const cookieStore = cookies() // No await needed here
+    const cookieStore = await cookies()
     cookieStore.set({
       name: "auth-token",
       value: token,
@@ -265,7 +261,7 @@ export async function login(username: string, password: string, rememberMe = fal
       sameSite: "lax",
       path: "/",
       maxAge: rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 2,
-    } )
+    })
 
     console.log(`Login successful for ${username}. Auth token cookie attempted to be set.`);
 
@@ -282,24 +278,22 @@ export async function login(username: string, password: string, rememberMe = fal
 }
 
 export async function logout() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.delete("auth-token")
   console.log("Logout: auth-token cookie deleted.");
   return true
 }
 
 export async function getUser() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = cookieStore.get("auth-token")?.value
 
   if (!token) {
-    // console.log("getUser: No auth-token found in cookies."); // Too verbose, uncomment if needed
     return null
   }
 
   const payload = await verifyAuth(token)
   if (!payload) {
-    console.log("getUser: Invalid or expired token payload.");
     return null
   }
 
@@ -321,7 +315,6 @@ export async function getUser() {
   })
 
   if (!user || user.status === "INACTIVE" || user.status === "SUSPENDED") {
-    console.log(`getUser: User ${payload.id} not found or inactive/suspended.`);
     return null
   }
 
