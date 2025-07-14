@@ -222,7 +222,7 @@ export default async function JobDescriptionPage({ params }: JobDescriptionPageP
         <TabsContent value="document" className="border">
           {latestDocument ? (
             <DocumentPreview
-              documentUrl={latestDocument.fileUrl}
+              documentUrl={`/api/documents/download/${latestDocument.fileUrl}`}
               documentType={latestDocument.fileType}
               title={jobDescription.title}
             />

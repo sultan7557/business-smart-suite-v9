@@ -217,7 +217,7 @@ export default async function CorrectiveActionPage({ params }: CorrectiveActionP
         <TabsContent value="document" className="border">
           {latestDocument ? (
             <DocumentPreview
-              documentUrl={latestDocument.fileUrl}
+              documentUrl={`/api/documents/download/${latestDocument.fileUrl}`}
               documentType={latestDocument.fileType}
               title={correctiveAction.title}
             />

@@ -227,7 +227,7 @@ export default async function BusinessContinuityPage({ params }: BusinessContinu
         <TabsContent value="document" className="border">
           {latestDocument ? (
             <DocumentPreview
-              documentUrl={latestDocument.fileUrl}
+              documentUrl={`/api/documents/download/${latestDocument.fileUrl}`}
               documentType={latestDocument.fileType}
               title={businessContinuity.title}
             />

@@ -221,7 +221,7 @@ export default async function TechnicalFilePage({ params }: TechnicalFilePagePro
         <TabsContent value="document" className="border">
           {latestDocument ? (
             <DocumentPreview
-              documentUrl={latestDocument.fileUrl}
+              documentUrl={`/api/documents/download/${latestDocument.fileUrl}`}
               documentType={latestDocument.fileType}
               title={technicalFile.title}
             />
@@ -291,7 +291,7 @@ export default async function TechnicalFilePage({ params }: TechnicalFilePagePro
             <div className="flex flex-col items-center justify-center space-y-4">
               <p className="text-gray-500">Download the latest version of this Technical File.</p>
               <Button asChild>
-                <a href={latestDocument.fileUrl} download>
+                <a href={`/api/documents/download/${latestDocument.fileUrl}`} download>
                   <Download className="h-4 w-4 mr-2" />
                   Download Document
                 </a>

@@ -215,7 +215,7 @@ export default async function COSHHPage({ params }: COSHHPageProps) {
         <TabsContent value="document" className="border">
           {latestDocument ? (
             <DocumentPreview
-              documentUrl={latestDocument.fileUrl}
+              documentUrl={`/api/documents/download/${latestDocument.fileUrl}`}
               documentType={latestDocument.fileType}
               title={coshh.title}
             />
@@ -285,7 +285,7 @@ export default async function COSHHPage({ params }: COSHHPageProps) {
             <div className="flex flex-col items-center justify-center space-y-4">
               <p className="text-gray-500">Download the latest version of this COSHH.</p>
               <Button asChild>
-                <a href={latestDocument.fileUrl} download>
+                <a href={`/api/documents/download/${latestDocument.fileUrl}`} download>
                   <Download className="h-4 w-4 mr-2" />
                   Download Document
                 </a>

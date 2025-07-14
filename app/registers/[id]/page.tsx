@@ -222,7 +222,7 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
         <TabsContent value="document" className="border">
           {latestDocument ? (
             <DocumentPreview
-              documentUrl={latestDocument.fileUrl}
+              documentUrl={`/api/documents/download/${latestDocument.fileUrl}`}
               documentType={latestDocument.fileType}
               title={register.title}
             />
