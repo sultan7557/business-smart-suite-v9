@@ -562,7 +562,12 @@ export default function MaintenanceClient({
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setSelectedDocument(doc);
+                            // Normalize fileUrl for preview
+                            let normalizedFileUrl = doc.fileUrl;
+                            if (normalizedFileUrl && !normalizedFileUrl.startsWith('/api/documents/download/')) {
+                              normalizedFileUrl = `/api/documents/download/${normalizedFileUrl.replace(/^\/uploads\//, '')}`;
+                            }
+                            setSelectedDocument({ ...doc, fileUrl: normalizedFileUrl });
                             setDocumentViewerOpen(true);
                           }}
                         >

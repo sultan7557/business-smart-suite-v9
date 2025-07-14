@@ -13,8 +13,9 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { documentId } = await params;
     const reviews = await prisma.maintenanceDocumentReview.findMany({
-      where: { documentId: params.documentId },
+      where: { documentId },
       include: {
         createdBy: {
           select: {
@@ -57,9 +58,10 @@ export async function POST(
       )
     }
 
+    const { documentId } = await params;
     const review = await prisma.maintenanceDocumentReview.create({
       data: {
-        documentId: params.documentId,
+        documentId,
         reviewerName,
         reviewDetails,
         reviewDate: new Date(reviewDate),
@@ -106,6 +108,8 @@ export async function DELETE(
       )
     }
 
+    // Await params for consistency
+    const { documentId } = await params;
     await prisma.maintenanceDocumentReview.delete({
       where: { id: reviewId },
     })
