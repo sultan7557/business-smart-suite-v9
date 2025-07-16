@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { prisma } from "@/lib/prisma"
 import { getUser } from "@/lib/auth"
 import ImprovementRegisterForm from "../improvement-register-form"
 
-export default async function NewImprovementRegisterPage() {
+export default function NewImprovementRegisterPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new improvement entry..." />}>
+      <NewImprovementRegisterPage />
+    </Suspense>
+  )
+}
+
+async function NewImprovementRegisterPage() {
   const user = await getUser()
   if (!user) {
     return <div>Unauthorized</div>

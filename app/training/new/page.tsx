@@ -1,5 +1,7 @@
 // app/training/new/page.tsx
 
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { getSkills } from "../../actions/training-actions"
 import { getUser } from "@/lib/auth"
 import { redirect } from "next/navigation"
@@ -12,7 +14,15 @@ export const metadata = {
 
 
 
-export default async function NewEmployeePage() {
+export default function NewEmployeePageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new employee..." />}>
+      <NewEmployeePage />
+    </Suspense>
+  )
+}
+
+async function NewEmployeePage() {
   const user = await getUser()
   if (!user) {
     redirect("/login")

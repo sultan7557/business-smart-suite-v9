@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
+import { Loader } from '@/components/ui/loader'
 
 interface ManualFormProps {
   manual: any
@@ -125,7 +126,7 @@ export default function ManualForm({ manual, canEdit }: ManualFormProps) {
         (isEditing ? (
           <div className="flex gap-2">
             <Button className="bg-green-600 hover:bg-green-700 mt-4 flex-1" onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save"}
+              {isLoading ? <Loader size="sm" ariaLabel="Saving..." /> : "Save"}
             </Button>
             <Button variant="outline" className="mt-4 flex-1" onClick={() => setIsEditing(false)} disabled={isLoading}>
               Cancel

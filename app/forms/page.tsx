@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import FormsClient from "@/components/forms-client"
@@ -8,7 +10,15 @@ export const metadata = {
 }
 
 
-export default async function FormsPage({
+export default function FormsPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading forms..." />}>
+      <FormsPage {...props} />
+    </Suspense>
+  )
+}
+
+async function FormsPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

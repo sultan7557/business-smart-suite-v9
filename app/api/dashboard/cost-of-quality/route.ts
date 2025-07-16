@@ -1,12 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { withAuth } from "@/lib/auth"
+import redis from "@/lib/redis"
 
 export const GET = withAuth(async (request: NextRequest) => {
   try {
     const url = new URL(request.url)
     const startDate = url.searchParams.get("startDate")
     const endDate = url.searchParams.get("endDate")
+    const cacheKey = `dashboard:cost-of-quality:${startDate || "all"}:${endDate || "all"}`
+    const cached = await redis.get(cacheKey)
+    if (cached) {
+      return new NextResponse(cached, {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" },
+      })
+    }
 
     let costOfQuality
 
@@ -25,7 +34,12 @@ export const GET = withAuth(async (request: NextRequest) => {
       costOfQuality = await prisma.costOfQuality.findMany()
     }
 
-    return NextResponse.json(costOfQuality)
+    const result = JSON.stringify(costOfQuality)
+    await redis.set(cacheKey, result, "EX", 120)
+    return new NextResponse(result, {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" },
+    })
   } catch (error) {
     console.error("Error fetching cost of quality:", error)
     return NextResponse.json({ error: "Failed to fetch cost of quality" }, { status: 500 })

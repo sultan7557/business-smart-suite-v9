@@ -1,5 +1,7 @@
 // app/suppliers/page.tsx
 
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { getSuppliers, getSupplierVersions } from "../actions/supplier-actions"
 import SuppliersClient from "./suppliers-client"
 import { getUser } from "@/lib/auth"
@@ -10,7 +12,15 @@ export const metadata = {
   description: "Manage suppliers in the Business Smart Suite Portal",
 }
 
-export default async function SuppliersPage() {
+export default function SuppliersPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading suppliers..." />}>
+      <SuppliersPage />
+    </Suspense>
+  )
+}
+
+async function SuppliersPage() {
   const user = await getUser()
   
   if (!user) {

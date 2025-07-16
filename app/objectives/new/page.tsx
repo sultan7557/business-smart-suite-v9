@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
 import Link from "next/link"
@@ -5,7 +7,15 @@ import { hasPermission } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import ObjectiveForm from "../objective-form"
 
-export default async function NewObjectivePage() {
+export default function NewObjectivePageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new objective..." />}>
+      <NewObjectivePage />
+    </Suspense>
+  )
+}
+
+async function NewObjectivePage() {
   const canEdit = await hasPermission("write")
 
   if (!canEdit) {

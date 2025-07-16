@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import TechnicalFileClient from "@/components/technical-file-client"
 
-export default async function TechnicalFilePage({
+export default function TechnicalFilePageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading technical files..." />}>
+      <TechnicalFilePage {...props} />
+    </Suspense>
+  )
+}
+
+async function TechnicalFilePage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

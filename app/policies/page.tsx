@@ -1,10 +1,20 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import PoliciesClient from "@/components/policies-client"
 import { Prisma } from "@prisma/client"
 
 
-export default async function PoliciesPage({
+export default function PoliciesPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading policies..." />}>
+      <PoliciesPage {...props} />
+    </Suspense>
+  )
+}
+
+async function PoliciesPage({
   searchParams,
 }: {
   searchParams?: { showArchived?: string; sort?: string }

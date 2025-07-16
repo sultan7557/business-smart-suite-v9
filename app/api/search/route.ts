@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import redis from "@/lib/redis"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -7,6 +8,17 @@ export async function GET(request: Request) {
 
   if (!query) {
     return NextResponse.json([])
+  }
+
+  // Redis cache key
+  const cacheKey = `search:${query}`
+  // Try cache first
+  const cached = await redis.get(cacheKey)
+  if (cached) {
+    return new NextResponse(cached, {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" },
+    })
   }
 
   try {
@@ -283,109 +295,28 @@ export async function GET(request: Request) {
       environmentalGuidance,
     ] = await Promise.all(searchPromises)
 
-    // Combine and format results
-    const results = [
-      ...manuals.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Manual",
-        href: `/manual/${item.id}`,
-        section: item.category.title,
-      })),
-      ...policies.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Policy",
-        href: `/policies/${item.id}`,
-        section: item.category.title,
-      })),
-      ...procedures.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Procedure",
-        href: `/procedures/${item.id}`,
-        section: item.category.title,
-      })),
-      ...forms.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Form",
-        href: `/forms/${item.id}`,
-        section: item.category.title,
-      })),
-      ...certificates.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Certificate",
-        href: `/certificate/${item.id}`,
-        section: item.category.title,
-      })),
-      ...registers.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Register",
-        href: `/registers/${item.id}`,
-        section: item.category.title,
-      })),
-      ...correctiveActions.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Corrective Action",
-        href: `/corrective-actions/${item.id}`,
-        section: item.category.title,
-      })),
-      ...businessContinuity.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Business Continuity",
-        href: `/business-continuity/${item.id}`,
-        section: item.category.title,
-      })),
-      ...jobDescriptions.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Job Description",
-        href: `/job-descriptions/${item.id}`,
-        section: item.category.title,
-      })),
-      ...workInstructions.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Work Instruction",
-        href: `/work-instructions/${item.id}`,
-        section: item.category.title,
-      })),
-      ...riskAssessments.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Risk Assessment",
-        href: `/risk-assessments/${item.id}`,
-        section: item.category.title,
-      })),
-      ...hseGuidance.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "HSE Guidance",
-        href: `/hse-guidance/${item.id}`,
-        section: item.category.title,
-      })),
-      ...technicalFile.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Technical File",
-        href: `/technical-file/${item.id}`,
-        section: item.category.title,
-      })),
-      ...environmentalGuidance.map(item => ({
-        id: item.id,
-        title: item.title,
-        type: "Environmental Guidance",
-        href: `/environmental-guidance/${item.id}`,
-        section: item.category.title,
-      })),
-    ]
-
-    return NextResponse.json(results)
+    const result = JSON.stringify({
+      manuals,
+      policies,
+      procedures,
+      forms,
+      certificates,
+      registers,
+      correctiveActions,
+      businessContinuity,
+      jobDescriptions,
+      workInstructions,
+      riskAssessments,
+      hseGuidance,
+      technicalFile,
+      environmentalGuidance,
+    })
+    // Cache for 2 minutes
+    await redis.set(cacheKey, result, "EX", 120)
+    return new NextResponse(result, {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" },
+    })
   } catch (error) {
     console.error("Search error:", error)
     return NextResponse.json({ error: "Search failed" }, { status: 500 })

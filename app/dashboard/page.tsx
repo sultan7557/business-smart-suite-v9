@@ -19,6 +19,7 @@ import {
 import DashboardCharts from "@/components/dashboard-charts"
 import { toast } from "@/components/ui/use-toast"
 import { format } from "date-fns"
+import useSWR, { mutate } from "swr"
 
 export default function DashboardPage() {
   // State for date inputs
@@ -26,119 +27,15 @@ export default function DashboardPage() {
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"))
 
   // State for chart data
-  const [rootCauseData, setRootCauseData] = useState([])
-  const [achievementRateData, setAchievementRateData] = useState([])
-  const [costOfQualityData, setCostOfQualityData] = useState([])
-  const [loading, setLoading] = useState(true)
+  const fetcher = (url: string) => fetch(url).then(res => res.json())
+  const { data: rootCauseData = [], isLoading: loadingRootCauses } = useSWR("/api/dashboard/root-causes", fetcher)
+  const { data: achievementRateData = [], isLoading: loadingAchievementRates } = useSWR("/api/dashboard/achievement-rates", fetcher)
+  const { data: costOfQualityData = [], isLoading: loadingCostOfQuality } = useSWR("/api/dashboard/cost-of-quality", fetcher)
+  const loading = loadingRootCauses || loadingAchievementRates || loadingCostOfQuality
 
-  // Fetch dashboard data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true)
-      try {
-        // Fetch root causes
-        const rootCausesResponse = await fetch("/api/dashboard/root-causes")
-        if (!rootCausesResponse.ok) throw new Error("Failed to fetch root causes")
-        const rootCauses = await rootCausesResponse.json()
-        setRootCauseData(rootCauses)
+  // Remove useEffect and setState logic for dashboard data
 
-        // Fetch achievement rates
-        const achievementRatesResponse = await fetch("/api/dashboard/achievement-rates")
-        if (!achievementRatesResponse.ok) throw new Error("Failed to fetch achievement rates")
-        const achievementRates = await achievementRatesResponse.json()
-        setAchievementRateData(achievementRates)
-
-        // Fetch cost of quality
-        const costOfQualityResponse = await fetch("/api/dashboard/cost-of-quality")
-        if (!costOfQualityResponse.ok) throw new Error("Failed to fetch cost of quality")
-        const costOfQuality = await costOfQualityResponse.json()
-        setCostOfQualityData(costOfQuality)
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error)
-        toast({
-          title: "Error",
-          description: "Failed to fetch dashboard data",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchDashboardData()
-  }, [])
-
-  const handleRefresh = async () => {
-    // Validate dates
-    if (!startDate || !endDate) {
-      toast({
-        title: "Error",
-        description: "Please enter both start and end dates",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Parse dates
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      toast({
-        title: "Error",
-        description: "Please enter valid dates",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (start > end) {
-      toast({
-        title: "Error",
-        description: "Start date must be before end date",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Refresh data
-    setLoading(true)
-    try {
-      // In a real app, you would pass the date range to the API
-      const rootCausesResponse = await fetch(`/api/dashboard/root-causes?startDate=${startDate}&endDate=${endDate}`)
-      if (!rootCausesResponse.ok) throw new Error("Failed to fetch root causes")
-      const rootCauses = await rootCausesResponse.json()
-      setRootCauseData(rootCauses)
-
-      const achievementRatesResponse = await fetch(
-        `/api/dashboard/achievement-rates?startDate=${startDate}&endDate=${endDate}`,
-      )
-      if (!achievementRatesResponse.ok) throw new Error("Failed to fetch achievement rates")
-      const achievementRates = await achievementRatesResponse.json()
-      setAchievementRateData(achievementRates)
-
-      const costOfQualityResponse = await fetch(
-        `/api/dashboard/cost-of-quality?startDate=${startDate}&endDate=${endDate}`,
-      )
-      if (!costOfQualityResponse.ok) throw new Error("Failed to fetch cost of quality")
-      const costOfQuality = await costOfQualityResponse.json()
-      setCostOfQualityData(costOfQuality)
-
-      toast({
-        title: "Success",
-        description: "Dashboard data refreshed",
-      })
-    } catch (error) {
-      console.error("Error refreshing dashboard data:", error)
-      toast({
-        title: "Error",
-        description: "Failed to refresh dashboard data",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Remove handleRefresh logic that uses setState for these datasets
 
   const iconModules = [
     { icon: <Calendar className="h-6 w-6" />, label: "Audit schedule", href: "/audit-schedule" },
@@ -222,7 +119,57 @@ export default function DashboardPage() {
                 </div>
               </div>
               <Button 
-                onClick={handleRefresh} 
+                onClick={async () => {
+                  // Validate dates
+                  if (!startDate || !endDate) {
+                    toast({
+                      title: "Error",
+                      description: "Please enter both start and end dates",
+                      variant: "destructive",
+                    })
+                    return
+                  }
+                  const start = new Date(startDate)
+                  const end = new Date(endDate)
+                  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                    toast({
+                      title: "Error",
+                      description: "Please enter valid dates",
+                      variant: "destructive",
+                    })
+                    return
+                  }
+                  if (start > end) {
+                    toast({
+                      title: "Error",
+                      description: "Start date must be before end date",
+                      variant: "destructive",
+                    })
+                    return
+                  }
+                  toast({
+                    title: "Refreshing...",
+                    description: "Refreshing dashboard data...",
+                  })
+                  try {
+                    await Promise.all([
+                      mutate(`/api/dashboard/root-causes?startDate=${startDate}&endDate=${endDate}`),
+                      mutate(`/api/dashboard/achievement-rates?startDate=${startDate}&endDate=${endDate}`),
+                      mutate(`/api/dashboard/cost-of-quality?startDate=${startDate}&endDate=${endDate}`),
+                    ])
+                    toast({
+                      title: "Success",
+                      description: "Dashboard data refreshed",
+                    })
+                  } catch (error) {
+                    console.error("Error refreshing dashboard data:", error)
+                    toast({
+                      title: "Error",
+                      description: "Failed to refresh dashboard data",
+                      variant: "destructive",
+                    })
+                  }
+                }}
                 disabled={loading}
                 className="bg-primary hover:bg-primary/90 text-white"
               >

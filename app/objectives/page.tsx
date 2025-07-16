@@ -1,13 +1,19 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { getObjectives } from "@/app/actions/objective-actions"
 import { hasPermission } from "@/lib/auth"
 import ObjectivesClient from "./objectives-client"
 import { toggleShowArchivedView } from "@/app/actions/objective-actions"
 
-export default async function ObjectivesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
+export default function ObjectivesPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading objectives..." />}>
+      <ObjectivesPage {...props} />
+    </Suspense>
+  )
+}
+
+async function ObjectivesPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const canEdit = await hasPermission("write") 
   const canDelete = await hasPermission("delete")
   

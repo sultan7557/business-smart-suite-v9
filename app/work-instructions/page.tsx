@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import WorkInstructionClient from "@/components/work-instructions-client"
 
-export default async function WorkInstructionPage({
+export default function WorkInstructionsPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading work instructions..." />}>
+      <WorkInstructionsPage {...props} />
+    </Suspense>
+  )
+}
+
+async function WorkInstructionsPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

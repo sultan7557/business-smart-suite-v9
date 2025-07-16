@@ -3,8 +3,18 @@ import { hasPermission } from "@/lib/auth"
 import { RegistersClient } from "@/components/registers-client"
 import Link from "next/link"
 import { FileText, ClipboardList, FileInput, Award, BarChart, AlertTriangle, Briefcase, Users, Settings, FileWarning, FileCode, HardHat } from "lucide-react"
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 
-export default async function RegisterPage({
+export default function RegistersPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading registers..." />}>
+      <RegistersPage {...props} />
+    </Suspense>
+  )
+}
+
+async function RegistersPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

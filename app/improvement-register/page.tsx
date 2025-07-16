@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { hasPermission } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import ImprovementRegisterClient from "./improvement-register-client"
 
-export default async function ImprovementRegisterPage() {
+export default function ImprovementRegisterPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading improvement register..." />}>
+      <ImprovementRegisterPage />
+    </Suspense>
+  )
+}
+
+async function ImprovementRegisterPage() {
   const canEdit = await hasPermission("write")
   const canDelete = await hasPermission("delete")
 

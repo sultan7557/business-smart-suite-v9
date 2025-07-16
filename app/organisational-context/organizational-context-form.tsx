@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { createOrganizationalContext, updateOrganizationalContext } from "@/app/actions/organizational-context-actions"
+import { Loader } from "@/components/ui/loader"
 
 // Categories and subcategories
 const categories = [
@@ -307,7 +308,7 @@ export default function OrganizationalContextForm({ entry, isDialog, onClose }: 
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : entry ? "Update" : "Save"}
+          {isSubmitting ? <Loader size="sm" ariaLabel="Saving..." /> : entry ? "Update" : "Save"}
         </Button>
       </div>
     </form>

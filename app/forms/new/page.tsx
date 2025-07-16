@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -11,7 +13,15 @@ export const metadata = {
   description: "Create a new form",
 }
 
-export default async function NewFormPage() {
+export default function NewFormPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new form..." />}>
+      <NewFormPage />
+    </Suspense>
+  )
+}
+
+async function NewFormPage() {
   const categories = await prisma.formCategory.findMany({
     where: { archived: false },
     orderBy: { order: "asc" },

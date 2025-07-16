@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
 import Link from "next/link"
@@ -6,7 +8,15 @@ import { hasPermission } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import AuditForm from "../audit-form"
 
-export default async function NewAuditPage() {
+export default function NewAuditPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new audit form..." />}>
+      <NewAuditPage />
+    </Suspense>
+  )
+}
+
+async function NewAuditPage() {
   const canEdit = await hasPermission("write")
   
   if (!canEdit) {

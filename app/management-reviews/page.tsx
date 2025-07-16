@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import ManagementReviewClient from "@/components/management-reviews-client"
 
-export default async function ManagementReviewPage({
+export default function ManagementReviewsPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading management reviews..." />}>
+      <ManagementReviewsPage {...props} />
+    </Suspense>
+  )
+}
+
+async function ManagementReviewsPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import HseGuidanceClient from "@/components/hse-guidance-client"
 
-export default async function HseGuidancePage({
+export default function HSEGuidancePageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading HSE guidance..." />}>
+      <HSEGuidancePage {...props} />
+    </Suspense>
+  )
+}
+
+async function HSEGuidancePage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

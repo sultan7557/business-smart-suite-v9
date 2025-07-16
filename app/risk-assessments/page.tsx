@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import RiskAssessmentClient from "@/components/risk-assessments-client"
 
-export default async function RiskAssessmentPage({
+export default function RiskAssessmentsPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading risk assessments..." />}>
+      <RiskAssessmentsPage {...props} />
+    </Suspense>
+  )
+}
+
+async function RiskAssessmentsPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

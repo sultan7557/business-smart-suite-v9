@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import JobDescriptionClient from "@/components/job-descriptions-client"
 
-export default async function JobDescriptionPage({
+export default function JobDescriptionsPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading job descriptions..." />}>
+      <JobDescriptionsPage {...props} />
+    </Suspense>
+  )
+}
+
+async function JobDescriptionsPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

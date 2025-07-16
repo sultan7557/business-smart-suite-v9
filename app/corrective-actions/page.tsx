@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import CorrectiveActionsClient from "@/components/corrective-actions-client"
 
-export default async function CorrectiveActionsPage({
+export default function CorrectiveActionsPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading corrective actions..." />}>
+      <CorrectiveActionsPage {...props} />
+    </Suspense>
+  )
+}
+
+async function CorrectiveActionsPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

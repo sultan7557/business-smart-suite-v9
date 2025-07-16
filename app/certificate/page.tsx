@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import CertificatesClient from "@/components/certificates-client"
 
-export default async function CertificatesPage({
+export default function CertificatePageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading certificates..." />}>
+      <CertificatePage {...props} />
+    </Suspense>
+  )
+}
+
+async function CertificatePage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

@@ -1,12 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { hasPermission } from "@/lib/auth";
 import { getOrganizationalContextEntries } from "@/app/actions/organizational-context-actions";
 import OrganizationalContextClient from "./organizational-context-client";
 
-export default async function OrganizationalContextPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ showArchived?: string }>;
-}) {
+export default function OrganizationalContextPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading organizational context..." />}>
+      <OrganizationalContextPage {...props} />
+    </Suspense>
+  )
+}
+
+async function OrganizationalContextPage({ searchParams }: { searchParams: Promise<{ showArchived?: string }> }) {
   const canEdit = await hasPermission("write");
   const canDelete = await hasPermission("delete");
 

@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { join } from 'path'
 import { createReadStream, existsSync } from 'fs'
 
-export async function GET(req: NextRequest, { params }: { params: { documentId: string } }) {
-  const documentId = params.documentId
+export async function GET(req: NextRequest, { params }: { params: Promise<{ documentId: string }> }) {
+  const { documentId } = await params
   if (!documentId) {
     return new NextResponse('Document ID required', { status: 400 })
   }

@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
 import Link from "next/link"
@@ -5,7 +7,15 @@ import { hasPermission } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import LegalRegisterForm from "../legal-register-form"
 
-export default async function NewLegalRegisterPage() {
+export default function NewLegalRegisterPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new legal register..." />}>
+      <NewLegalRegisterPage />
+    </Suspense>
+  )
+}
+
+async function NewLegalRegisterPage() {
   const canEdit = await hasPermission("write")
 
   if (!canEdit) {

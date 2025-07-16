@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import ProceduresClient from "@/components/procedures-client"
 
-export default async function ProceduresPage({
+export default function ProceduresPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading procedures..." />}>
+      <ProceduresPage {...props} />
+    </Suspense>
+  )
+}
+
+async function ProceduresPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
 import Link from "next/link"
@@ -5,7 +7,15 @@ import { hasPermission } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import OrganizationalContextForm from "../organizational-context-form"
 
-export default async function NewOrganizationalContextPage() {
+export default function NewOrganizationalContextPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new organizational context entry..." />}>
+      <NewOrganizationalContextPage />
+    </Suspense>
+  )
+}
+
+async function NewOrganizationalContextPage() {
   const canEdit = await hasPermission("write")
 
   if (!canEdit) {

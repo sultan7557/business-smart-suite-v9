@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
 import Link from "next/link"
@@ -6,7 +8,15 @@ import { redirect } from "next/navigation"
 import MaintenanceForm from "../maintenance-form"
 import prisma from "@/lib/prisma"
 
-export default async function NewMaintenancePage() {
+export default function NewMaintenancePageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new maintenance item..." />}>
+      <NewMaintenancePage />
+    </Suspense>
+  )
+}
+
+async function NewMaintenancePage() {
   const canEdit = await hasPermission("write")
 
   if (!canEdit) {

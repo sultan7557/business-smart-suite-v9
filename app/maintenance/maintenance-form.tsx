@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { createMaintenanceItem, updateMaintenanceItem, completeMaintenanceItem, getSubCategories } from "@/app/actions/maintenance-actions"
 import { format } from "date-fns"
 import DocumentUpload from "./document-upload"
+import { Loader } from "@/components/ui/loader"
 
 // Frequency options
 const frequencyOptions = [
@@ -488,7 +489,7 @@ export default function MaintenanceForm({ item, users = [], subCategories = [], 
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : item ? "Save" : "Save"}
+          {isSubmitting ? <Loader size="sm" ariaLabel="Saving..." /> : item ? "Save" : "Save"}
         </Button>
         {item && (
           <Button type="button" disabled={isSubmitting} onClick={handleSubmit}>

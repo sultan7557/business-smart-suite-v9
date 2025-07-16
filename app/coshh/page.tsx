@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import COSHHClient from "@/components/coshh-client"
 
-export default async function COSHHPage({
+export default function COSHHPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading COSHH..." />}>
+      <COSHHPage {...props} />
+    </Suspense>
+  )
+}
+
+async function COSHHPage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

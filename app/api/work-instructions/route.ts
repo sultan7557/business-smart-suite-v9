@@ -1,12 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { withAuth, getUser } from "@/lib/auth"
+import redis from "@/lib/redis"
 
 export const GET = withAuth(async (request: NextRequest) => {
   try {
     const searchParams = request.nextUrl.searchParams
     const archived = searchParams.get("archived") === "true"
     const categoryId = searchParams.get("categoryId")
+    const cacheKey = `work-instructions:archived:${archived}:categoryId:${categoryId || 'all'}`
+    const cached = await redis.get(cacheKey)
+    if (cached) {
+      return new NextResponse(cached, {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" },
+      })
+    }
 
     const workInstructions = await prisma.workInstruction.findMany({
       where: {
@@ -36,8 +45,12 @@ export const GET = withAuth(async (request: NextRequest) => {
         { title: "asc" },
       ],
     })
-
-    return NextResponse.json(workInstructions)
+    const result = JSON.stringify(workInstructions)
+    await redis.set(cacheKey, result, "EX", 120)
+    return new NextResponse(result, {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" },
+    })
   } catch (error) {
     console.error("Error fetching work instructions:", error)
     return NextResponse.json({ error: "Failed to fetch work instructions" }, { status: 500 })

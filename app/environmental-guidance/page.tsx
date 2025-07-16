@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import EnvironmentalGuidanceClient from "@/components/environmental-guidance-client"
 
-export default async function EnvironmentalGuidancePage({
+export default function EnvironmentalGuidancePageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading environmental guidance..." />}>
+      <EnvironmentalGuidancePage {...props} />
+    </Suspense>
+  )
+}
+
+async function EnvironmentalGuidancePage({
   searchParams,
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>

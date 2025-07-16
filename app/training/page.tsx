@@ -1,5 +1,7 @@
 // app/training/page.tsx
 
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { getEmployees, getSkills } from "../actions/training-actions"
 import TrainingClient from "./training-client"
 import { getUser } from "@/lib/auth"
@@ -10,7 +12,15 @@ export const metadata = {
   description: "Manage employee training in the Business Smart Portal",
 }
 
-export default async function TrainingPage() {
+export default function TrainingPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading training..." />}>
+      <TrainingPage />
+    </Suspense>
+  )
+}
+
+async function TrainingPage() {
     const user = await getUser()
     if (!user) {
       redirect("/login")

@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { createObjective, updateObjective, completeObjective } from "@/app/actions/objective-actions"
 import { format } from "date-fns"
+import { Loader } from "@/components/ui/loader"
 
 // Categories
 const categories = [
@@ -347,7 +348,7 @@ export default function ObjectiveForm({ objective, isDialog, onClose }: Objectiv
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : objective ? "Update" : "Save"}
+          {isSubmitting ? <Loader size="sm" ariaLabel="Saving..." /> : objective ? "Update" : "Save"}
         </Button>
       </div>
     </form>

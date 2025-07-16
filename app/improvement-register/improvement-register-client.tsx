@@ -388,6 +388,14 @@ export default function ImprovementRegisterClient({
     printWindow.document.close();
   };
 
+  if (!improvements) {
+    return (
+      <div className="py-8 flex justify-center">
+        <Loader size="lg" message="Loading improvements..." />
+      </div>
+    )
+  }
+
   const renderImprovementTable = (items: any[], title: string, isExpanded: boolean, onToggle: () => void) => {
     if (typeof items === 'undefined') {
       return (

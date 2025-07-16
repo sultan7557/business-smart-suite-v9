@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -8,7 +10,15 @@ import { getUser } from "@/lib/auth"
 import { hasPermission } from "@/lib/auth"
 import { notFound } from "next/navigation"
 
-export default async function NewManagementReviewPage() {
+export default function NewManagementReviewPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new management review..." />}>
+      <NewManagementReviewPage />
+    </Suspense>
+  )
+}
+
+async function NewManagementReviewPage() {
   const canEdit = await hasPermission("write")
   if (!canEdit) {
     notFound()

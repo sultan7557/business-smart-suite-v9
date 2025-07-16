@@ -253,6 +253,17 @@ export default function InterestedPartiesClient({
                             onClick={() => handleReorder(party.id, "up")}
                             title="Move up"
                             disabled={loadingAction[party.id] === 'reorder'}
+                            className="px-1"
+                          >
+                            {loadingAction[party.id] === 'reorder' ? <Loader size="sm" ariaLabel="Reordering..." /> : <ArrowUpDown className="h-4 w-4 rotate-180" />}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => handleReorder(party.id, "down")}
+                            title="Move down"
+                            disabled={loadingAction[party.id] === 'reorder'}
+                            className="px-1"
                           >
                             {loadingAction[party.id] === 'reorder' ? <Loader size="sm" ariaLabel="Reordering..." /> : <ArrowUpDown className="h-4 w-4" />}
                           </Button>

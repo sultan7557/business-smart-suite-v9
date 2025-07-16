@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -6,7 +8,15 @@ import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { getUser } from "@/lib/auth"
 
-export default async function NewCorrectiveActionPage() {
+export default function NewCorrectiveActionPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new corrective action..." />}>
+      <NewCorrectiveActionPage />
+    </Suspense>
+  )
+}
+
+async function NewCorrectiveActionPage() {
   const categories = await prisma.correctiveActionCategory.findMany({
     where: { archived: false },
     orderBy: { order: "asc" },

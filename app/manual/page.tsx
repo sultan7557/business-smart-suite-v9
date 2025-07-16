@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import ManualsClient from "@/components/manuals-client"
 
-export default async function ManualsPage() {
+export default function ManualPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading manuals..." />}>
+      <ManualPage {...props} />
+    </Suspense>
+  )
+}
+
+async function ManualPage(props: any) {
   const canEdit = await hasPermission("write")
   const canDelete = await hasPermission("delete")
 

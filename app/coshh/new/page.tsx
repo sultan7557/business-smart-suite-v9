@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -10,7 +12,15 @@ import { notFound } from "next/navigation"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
-export default async function NewCOSHHPage() {
+export default function NewCOSHHPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new COSHH..." />}>
+      <NewCOSHHPage />
+    </Suspense>
+  )
+}
+
+async function NewCOSHHPage() {
   const canEdit = await hasPermission("write")
   if (!canEdit) {
     notFound()

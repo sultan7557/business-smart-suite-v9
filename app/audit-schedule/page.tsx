@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Calendar, ArrowLeft, Plus, RotateCcw, Archive } from 'lucide-react'
@@ -6,7 +8,15 @@ import prisma from "@/lib/prisma"
 import { hasPermission } from "@/lib/auth"
 import AuditList from "./audit-list"
 
-export default async function AuditSchedulePage() {
+export default function AuditSchedulePageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading audit schedule..." />}>
+      <AuditSchedulePage />
+    </Suspense>
+  )
+}
+
+async function AuditSchedulePage() {
   const canEdit = await hasPermission("write")
   
   // Initialize empty arrays for audits

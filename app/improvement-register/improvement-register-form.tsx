@@ -572,7 +572,7 @@ export default function ImprovementRegisterForm({ users, improvement }: Improvem
 
       <div className="flex justify-start space-x-2">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? <Loader size="sm" ariaLabel="Saving..." /> : "Save"}
+          {isSubmitting ? <Loader size="sm" ariaLabel="Saving..." /> : improvement ? "Update" : "Save"}
         </Button>
         <Button type="submit" name="saveAndContinue" value="true" disabled={isSubmitting}>
           {isSubmitting ? <Loader size="sm" ariaLabel="Saving..." /> : "Save and continue"}

@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -10,7 +12,15 @@ import { notFound } from "next/navigation"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
-export default async function NewEnvironmentalGuidancePage() {
+export default function NewEnvironmentalGuidancePageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new environmental guidance..." />}>
+      <NewEnvironmentalGuidancePage />
+    </Suspense>
+  )
+}
+
+async function NewEnvironmentalGuidancePage() {
   const canEdit = await hasPermission("write")
   if (!canEdit) {
     notFound()

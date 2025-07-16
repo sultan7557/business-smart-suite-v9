@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -6,7 +8,15 @@ import prisma from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { getUser } from "@/lib/auth"
 
-export default async function NewManualPage() {
+export default function NewManualPageWrapper() {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading new manual..." />}>
+      <NewManualPage />
+    </Suspense>
+  )
+}
+
+async function NewManualPage() {
   const categories = await prisma.manualCategory.findMany({
     where: { archived: false },
     orderBy: { order: "asc" },

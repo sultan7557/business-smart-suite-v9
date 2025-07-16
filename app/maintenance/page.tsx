@@ -1,13 +1,19 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { hasPermission } from "@/lib/auth"
 import { getMaintenanceItems, getSubCategories, toggleShowArchivedView } from "@/app/actions/maintenance-actions"
 import MaintenanceClient from "./maintenance-client"
 import { prisma } from "@/lib/prisma"
 
-export default async function MaintenancePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
+export default function MaintenancePageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading maintenance..." />}>
+      <MaintenancePage {...props} />
+    </Suspense>
+  )
+}
+
+async function MaintenancePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const canEdit = await hasPermission("write")
   const canDelete = await hasPermission("delete")
   

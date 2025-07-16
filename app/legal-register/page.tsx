@@ -1,8 +1,18 @@
+import { Suspense } from "react"
+import { Loader } from '@/components/ui/loader'
 import { hasPermission } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import LegalRegisterClient from "./legal-register-client"
 
-export default async function LegalRegisterPage() {
+export default function LegalRegisterPageWrapper(props: any) {
+  return (
+    <Suspense fallback={<Loader overlay message="Loading legal register..." />}>
+      <LegalRegisterPage {...props} />
+    </Suspense>
+  )
+}
+
+async function LegalRegisterPage(props: any) {
   const canEdit = await hasPermission("write")
   const canDelete = await hasPermission("delete")
   const canApprove = await hasPermission("write")
