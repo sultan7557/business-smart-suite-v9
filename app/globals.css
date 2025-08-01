@@ -2,6 +2,649 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Poppins Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+/* World-Class Design System */
+
+/* Poppins Font Family */
+.font-poppins {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Revolutionary Enterprise - Hero Icons */
+.enterprise-hero-icon {
+  width: 6rem; /* 96px - massive and prominent */
+  height: 6rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08));
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 2rem;
+  backdrop-filter: blur(24px);
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255,255,255,0.4),
+    0 0 30px rgba(255,255,255,0.2);
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.enterprise-hero-icon:hover {
+  transform: scale(1.08) translateY(-4px);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255,255,255,0.5),
+    0 0 40px rgba(255,255,255,0.3);
+}
+
+.enterprise-hero-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 1s ease;
+}
+
+.enterprise-hero-icon:hover::before {
+  left: 100%;
+}
+
+/* Revolutionary Enterprise - Section Icons */
+.enterprise-section-icon {
+  width: 5rem; /* 80px - large and prominent */
+  height: 5rem;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.enterprise-section-icon:hover {
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.6));
+  transform: translateY(-4px);
+}
+
+.enterprise-section-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 1s ease;
+}
+
+.enterprise-section-icon:hover::after {
+  width: 120%;
+  height: 120%;
+}
+
+/* Revolutionary Enterprise - Section Titles */
+.enterprise-section-title {
+  font-size: 3rem; /* 48px - commanding presence */
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #ffffff, #f8fafc, #e2e8f0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 6px 16px rgba(0,0,0,0.9);
+  transition: all 0.7s ease;
+  position: relative;
+}
+
+.enterprise-section-title:hover {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9, #cbd5e1);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  transform: translateY(-2px);
+}
+
+.enterprise-section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ffffff, transparent);
+  transition: width 0.7s ease;
+}
+
+.enterprise-section-title:hover::after {
+  width: 100%;
+}
+
+/* Revolutionary Enterprise - Navigation Items */
+.enterprise-nav-item {
+  font-size: 1.25rem; /* 20px - larger text */
+  font-weight: 700;
+  line-height: 1.6;
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.enterprise-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.enterprise-nav-item:hover::before {
+  opacity: 1;
+}
+
+/* Big Navigation Icons - Small Section Boxes */
+.big-nav-icon {
+  width: 4.5rem; /* 72px - big and prominent */
+  height: 4.5rem;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.big-nav-icon:hover {
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+  transform: translateY(-2px);
+}
+
+.big-nav-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 1s ease;
+}
+
+.big-nav-icon:hover::after {
+  width: 110%;
+  height: 110%;
+}
+
+/* Optimized Navigation Icons - Perfect Balance & Centered */
+.optimized-nav-icon {
+  width: 5rem; /* 80px - perfect size for visibility */
+  height: 5rem;
+  margin-bottom: 0.75rem; /* Reduced margin for better balance */
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.optimized-nav-icon:hover {
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+  transform: translateY(-1px);
+}
+
+.optimized-nav-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 1s ease;
+}
+
+.optimized-nav-icon:hover::after {
+  width: 100%;
+  height: 100%;
+}
+
+/* Enterprise Floating Animation Effects */
+@keyframes enterprise-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes enterprise-glow {
+  0%, 100% {
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.4),
+      inset 0 2px 0 rgba(255,255,255,0.4),
+      0 0 30px rgba(255,255,255,0.2);
+  }
+  50% {
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      inset 0 2px 0 rgba(255,255,255,0.5),
+      0 0 40px rgba(255,255,255,0.3);
+  }
+}
+
+.enterprise-hero-icon {
+  animation: enterprise-float 8s ease-in-out infinite, enterprise-glow 6s ease-in-out infinite;
+}
+
+/* Modern Work of Art - Hero Icons */
+.art-hero-icon {
+  width: 4.5rem; /* 72px - perfectly sized */
+  height: 4.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 1.5rem;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    0 0 20px rgba(255,255,255,0.15);
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.art-hero-icon:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 0 30px rgba(255,255,255,0.2);
+}
+
+.art-hero-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.7s ease;
+}
+
+.art-hero-icon:hover::before {
+  left: 100%;
+}
+
+/* Modern Work of Art - Section Icons */
+.art-section-icon {
+  width: 3.5rem; /* 56px - perfectly contained */
+  height: 3.5rem;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.art-section-icon:hover {
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+  transform: translateY(-2px);
+}
+
+.art-section-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.7s ease;
+}
+
+.art-section-icon:hover::after {
+  width: 100%;
+  height: 100%;
+}
+
+/* Modern Work of Art - Section Titles */
+.art-section-title {
+  font-size: 2.25rem; /* 36px - commanding presence */
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #ffffff, #f8fafc, #e2e8f0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.9);
+  transition: all 0.5s ease;
+  position: relative;
+}
+
+.art-section-title:hover {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9, #cbd5e1);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  transform: translateY(-1px);
+}
+
+.art-section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #ffffff, transparent);
+  transition: width 0.5s ease;
+}
+
+.art-section-title:hover::after {
+  width: 100%;
+}
+
+/* Modern Work of Art - Navigation Items */
+.art-nav-item {
+  font-size: 1.125rem; /* 18px - perfect balance */
+  font-weight: 600;
+  line-height: 1.5;
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.art-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+
+.art-nav-item:hover::before {
+  opacity: 1;
+}
+
+/* Floating Animation Effects */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255,255,255,0.4),
+      0 0 20px rgba(255,255,255,0.15);
+  }
+  50% {
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      0 0 30px rgba(255,255,255,0.25);
+  }
+}
+
+.art-hero-icon {
+  animation: float 6s ease-in-out infinite, glow-pulse 4s ease-in-out infinite;
+}
+
+/* Premium Hero Section Icons - Million Dollar Design */
+.premium-hero-icon {
+  width: 5.5rem; /* 88px - significantly larger */
+  height: 5.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08));
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 2rem;
+  backdrop-filter: blur(24px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    0 0 20px rgba(255,255,255,0.1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-hero-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 16px 50px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    0 0 30px rgba(255,255,255,0.2);
+}
+
+/* Premium Section Icons - Enhanced Breathing Room */
+.premium-section-icon {
+  width: 4.5rem; /* 72px - much larger */
+  height: 4.5rem;
+  margin-bottom: 2rem; /* Increased breathing room */
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-section-icon:hover {
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+}
+
+/* Premium Section Titles - Million Dollar Typography */
+.premium-section-title {
+  font-size: 2.25rem; /* 36px - commanding presence */
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #ffffff, #f8fafc, #e2e8f0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.9);
+  transition: all 0.3s ease;
+}
+
+.premium-section-title:hover {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9, #cbd5e1);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Premium Navigation Items - Sophisticated Design */
+.premium-nav-item {
+  font-size: 1.25rem; /* 20px - larger text */
+  font-weight: 600;
+  line-height: 1.5;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Legacy classes for backward compatibility */
+.hero-icon {
+  width: 4.5rem; /* 72px */
+  height: 4.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 1.5rem;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.section-icon {
+  width: 3.5rem; /* 56px */
+  height: 3.5rem;
+  margin-bottom: 1.5rem; /* Critical spacing */
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+}
+
+.section-title {
+  font-size: 1.875rem; /* 30px - much larger */
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #ffffff, #e2e8f0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.nav-item {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 768px) {
+  .enterprise-hero-icon {
+    width: 4.5rem;
+    height: 4.5rem;
+    padding: 1rem;
+  }
+  
+  .enterprise-section-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .enterprise-section-title {
+    font-size: 2.25rem;
+  }
+  
+  .enterprise-nav-item {
+    font-size: 1.125rem;
+  }
+  
+  .art-hero-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0.75rem;
+  }
+  
+  .art-section-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .art-section-title {
+    font-size: 1.875rem;
+  }
+  
+  .art-nav-item {
+    font-size: 1rem;
+  }
+  
+  .premium-hero-icon {
+    width: 4.5rem;
+    height: 4.5rem;
+    padding: 1rem;
+  }
+  
+  .premium-section-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .premium-section-title {
+    font-size: 1.875rem;
+  }
+  
+  .premium-nav-item {
+    font-size: 1.125rem;
+  }
+  
+  .hero-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0.75rem;
+  }
+  
+  .section-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Premium Animation Effects */
+@keyframes premium-glow {
+  0%, 100% {
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      0 0 20px rgba(255,255,255,0.1);
+  }
+  50% {
+    box-shadow: 
+      0 16px 50px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255,255,255,0.4),
+      0 0 30px rgba(255,255,255,0.2);
+  }
+}
+
+.premium-hero-icon {
+  animation: premium-glow 3s ease-in-out infinite;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

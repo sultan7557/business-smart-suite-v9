@@ -15,6 +15,16 @@ export async function getSuppliers(includeArchived: boolean = false) {
     const suppliers = await prisma.supplier.findMany({
       where,
       orderBy: { name: "asc" },
+      include: {
+        documents: {
+          select: {
+            id: true,
+            title: true,
+            expiryDate: true,
+          },
+          orderBy: { uploadedAt: 'desc' },
+        },
+      },
     })
     return { success: true, data: suppliers }
   } catch (error) {
@@ -281,6 +291,10 @@ export async function uploadSupplierDocument(supplierId: string, formData: FormD
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
     
+    // Get expiry date from form data
+    const expiryDateStr = formData.get("expiryDate") as string;
+    const expiryDate = expiryDateStr ? new Date(expiryDateStr) : null;
+    
     // Create document record
     const document = await prisma.supplierDocument.create({
       data: {
@@ -290,6 +304,7 @@ export async function uploadSupplierDocument(supplierId: string, formData: FormD
         fileType: file.type,
         size: file.size,
         uploadedById: user.id,
+        expiryDate,
         versions: {
           create: {
             version: "1",

@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import Sidebar from "@/components/sidebar"
 import Header from "@/components/header"
 import { Toaster } from "sonner"
 import { getUser } from "@/lib/auth"
@@ -33,16 +32,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light">
+        <ThemeProvider>
           {isAdminPermissionsRoute ? (
             <PermissionsLayout>{children}</PermissionsLayout>
           ) : (
             <div className="flex flex-col min-h-screen">
               {isAuthenticated && <Header />}
-              <div className="flex flex-1">
-                {isAuthenticated && <Sidebar />}
                 <main className="flex-1 p-0 overflow-auto">{children}</main>
-              </div>
             </div>
           )}
           <Toaster />
@@ -51,5 +47,3 @@ export default async function RootLayout({
     </html>
   )
 }
-
-import './globals.css'

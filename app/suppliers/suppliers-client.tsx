@@ -77,6 +77,31 @@ export default function SuppliersClient({
     return likelihood * severity
   }
   
+  const getDocumentExpiryStatus = (documents: any[]) => {
+    if (!documents || documents.length === 0) return { status: 'no-documents', count: 0, expired: 0, expiringSoon: 0 }
+    
+    const today = new Date()
+    const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+    
+    let expired = 0
+    let expiringSoon = 0
+    
+    documents.forEach(doc => {
+      if (doc.expiryDate) {
+        const expiryDate = new Date(doc.expiryDate)
+        if (expiryDate < today) {
+          expired++
+        } else if (expiryDate <= thirtyDaysFromNow) {
+          expiringSoon++
+        }
+      }
+    })
+    
+    if (expired > 0) return { status: 'expired', count: documents.length, expired, expiringSoon }
+    if (expiringSoon > 0) return { status: 'expiring-soon', count: documents.length, expired, expiringSoon }
+    return { status: 'valid', count: documents.length, expired, expiringSoon }
+  }
+  
   const handleArchiveSupplier = async (id: string, isArchived: boolean) => {
     try {
       setLoadingAction((prev) => ({ ...prev, [id]: isArchived ? 'unarchive' : 'archive' }))
@@ -318,18 +343,30 @@ export default function SuppliersClient({
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Controls and Recommendations</th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Residual Risk</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[180px]">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {typeof suppliers === 'undefined' ? (
-              <tr><td colSpan={9}><div className="py-8 flex justify-center"><Loader size="lg" message="Loading suppliers..." /></div></td></tr>
+              <tr><td colSpan={10}><div className="py-8 flex justify-center"><Loader size="lg" message="Loading suppliers..." /></div></td></tr>
             ) : filteredSuppliers.map((supplier) => {
               const riskLevel = calculateRiskLevel(supplier.riskLikelihood, supplier.riskSeverity)
               const residualRiskLevel = calculateRiskLevel(supplier.residualLikelihood, supplier.residualSeverity)
+              const documentStatus = getDocumentExpiryStatus(supplier.documents || [])
               
               return (
-                <tr key={supplier.id} className={supplier.archived ? "bg-gray-100" : ""}>
+                <tr 
+                  key={supplier.id} 
+                  className={`${supplier.archived ? "bg-gray-100" : ""} cursor-pointer hover:bg-gray-50 transition-colors`}
+                  onClick={(e) => {
+                    // Don't navigate if clicking on the dropdown menu
+                    if ((e.target as HTMLElement).closest('[data-dropdown]')) {
+                      return;
+                    }
+                    router.push(`/suppliers/${supplier.id}`);
+                  }}
+                >
                   <td className="px-6 py-4">
                     <div className="font-medium">{supplier.name}</div>
                     <div className="text-sm text-gray-500 whitespace-pre-line">{supplier.address}</div>
@@ -354,15 +391,39 @@ export default function SuppliersClient({
                       {residualRiskLevel}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-center">
+                    {documentStatus.count > 0 ? (
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-sm font-medium">{documentStatus.count} docs</span>
+                        {documentStatus.status === 'expired' && (
+                          <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                            {documentStatus.expired} expired
+                          </span>
+                        )}
+                        {documentStatus.status === 'expiring-soon' && (
+                          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                            {documentStatus.expiringSoon} expiring
+                          </span>
+                        )}
+                        {documentStatus.status === 'valid' && (
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                            All valid
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500">No docs</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" className="h-8 w-8 p-0" data-dropdown>
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" data-dropdown>
                         <DropdownMenuItem onClick={() => router.push(`/suppliers/${supplier.id}`)}>
                           <Pencil className="mr-2 h-4 w-4" />
                           <span>Edit</span>

@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
       fileType: true,
       size: true,
       uploadedAt: true,
+      expiryDate: true,
     },
   })
   return NextResponse.json(documents)

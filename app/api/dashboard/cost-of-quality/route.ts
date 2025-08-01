@@ -1,48 +1,82 @@
-import { type NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
-import { withAuth } from "@/lib/auth"
-import redis from "@/lib/redis"
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { getUser } from "@/lib/auth"
 
-export const GET = withAuth(async (request: NextRequest) => {
+export async function GET(request: NextRequest) {
   try {
-    const url = new URL(request.url)
-    const startDate = url.searchParams.get("startDate")
-    const endDate = url.searchParams.get("endDate")
-    const cacheKey = `dashboard:cost-of-quality:${startDate || "all"}:${endDate || "all"}`
-    const cached = await redis.get(cacheKey)
-    if (cached) {
-      return new NextResponse(cached, {
-        status: 200,
-        headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" },
-      })
+    const user = await getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    let costOfQuality
+    const { searchParams } = new URL(request.url)
+    const startDate = searchParams.get("startDate")
+    const endDate = searchParams.get("endDate")
 
+    // Build date filter - default to last 12 months if no dates provided
+    let dateFilter: any = {}
     if (startDate && endDate) {
-      // If date range is provided, filter by date
-      costOfQuality = await prisma.costOfQuality.findMany({
-        where: {
-          createdAt: {
-            gte: new Date(startDate),
-            lte: new Date(endDate),
-          },
-        },
-      })
+      dateFilter.dateRaised = {
+        gte: new Date(startDate),
+        lte: new Date(endDate)
+      }
     } else {
-      // Otherwise, get all cost of quality data
-      costOfQuality = await prisma.costOfQuality.findMany()
+      // Default to last 12 months
+      const twelveMonthsAgo = new Date()
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
+      dateFilter.dateRaised = {
+        gte: twelveMonthsAgo,
+        lte: new Date()
+      }
     }
 
-    const result = JSON.stringify(costOfQuality)
-    await redis.set(cacheKey, result, "EX", 120)
-    return new NextResponse(result, {
-      status: 200,
-      headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" },
+    // Get cost data grouped by category (section) from improvement register
+    const costData = await prisma.improvementRegister.groupBy({
+      by: ['category'],
+      where: {
+        ...dateFilter,
+        archived: false,
+        cost: {
+          gt: 0
+        }
+      },
+      _sum: {
+        cost: true
+      },
+      _count: {
+        category: true
+      },
+      orderBy: {
+        _sum: {
+          cost: 'desc'
+        }
+      }
+    })
+
+    // Transform data for chart - showing total combined cost per section
+    const chartData = costData.map(item => ({
+      name: item.category,
+      totalCost: item._sum.cost || 0,
+      count: item._count.category,
+      averageCost: item._sum.cost ? (item._sum.cost / item._count.category) : 0
+    }))
+
+    // Add summary statistics
+    const totalCost = chartData.reduce((sum, item) => sum + item.totalCost, 0)
+    const totalCount = chartData.reduce((sum, item) => sum + item.count, 0)
+    const averageCost = totalCount > 0 ? totalCost / totalCount : 0
+
+    return NextResponse.json({
+      data: chartData,
+      summary: {
+        totalCost,
+        totalCount,
+        averageCost
+      }
     })
   } catch (error) {
-    console.error("Error fetching cost of quality:", error)
-    return NextResponse.json({ error: "Failed to fetch cost of quality" }, { status: 500 })
+    console.error("Error fetching cost of quality data:", error)
+    return NextResponse.json({ error: "Failed to fetch cost of quality data" }, { status: 500 })
   }
-})
+}
 

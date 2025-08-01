@@ -257,14 +257,44 @@ export async function deleteSkill(id: string) {
 }
 
 // Employee Skill actions
-export async function addEmployeeSkill(employeeId: string, skillId: string, dateCompleted: string, evidence?: string) {
+export async function addEmployeeSkill(employeeId: string, skillId: string, dateCompleted: string, evidence?: File) {
   try {
+    let evidenceUrl = undefined
+    
+    // Upload evidence file if provided
+    if (evidence) {
+      // Check file size (10MB limit)
+      if (evidence.size > 10 * 1024 * 1024) {
+        return { success: false, error: "File size must be less than 10MB" }
+      }
+      
+      // Create a unique filename
+      const timestamp = Date.now()
+      const filename = `${timestamp}-${evidence.name}`
+      const uploadDir = join(process.cwd(), "public", "uploads")
+      const filePath = join(uploadDir, filename)
+      
+      // Ensure the uploads directory exists
+      try {
+        await mkdir(uploadDir, { recursive: true })
+      } catch (err) {
+        // Directory exists already
+      }
+      
+      // Save the file
+      const bytes = await evidence.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      await writeFile(filePath, buffer)
+      
+      evidenceUrl = `/uploads/${filename}`
+    }
+    
     const employeeSkill = await prisma.employeeSkill.create({
       data: {
         employeeId,
         skillId,
         dateCompleted: new Date(dateCompleted),
-        evidence
+        evidence: evidenceUrl
       }
     })
     

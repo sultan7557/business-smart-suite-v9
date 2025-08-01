@@ -213,19 +213,11 @@ export default function EmployeeDetail({
       setIsSubmitting(true)
       setLoadingAction((prev) => ({ ...prev, addSkill: 'addSkill' }))
       
-      // Upload evidence if provided
-      let evidenceUrl = undefined
-      if (evidence) {
-        // In a real app, you would upload the file to a storage service
-        // For this demo, we'll create a mock URL
-        evidenceUrl = `/api/documents/download/${Date.now()}-${evidence.name}`
-      }
-      
       const result = await addEmployeeSkill(
         employee.id, 
         selectedSkill, 
         dateCompleted, 
-        evidenceUrl
+        evidence || undefined
       )
       setLoadingAction((prev) => ({ ...prev, addSkill: null }))
       
@@ -569,6 +561,7 @@ export default function EmployeeDetail({
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skill</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frequency</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Evidence</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -588,6 +581,29 @@ export default function EmployeeDetail({
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {skill.frequencyDays > 0 ? `${skill.frequencyDays} days` : "N/A"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {employeeSkill?.evidence ? (
+                            <div className="flex items-center space-x-2">
+                              <a 
+                                href={`/api/training/skills/${employeeSkill.id}/evidence/preview`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                Preview
+                              </a>
+                              <a 
+                                href={`/api/training/skills/${employeeSkill.id}/evidence/download?download=1`} 
+                                download
+                                className="text-blue-600 hover:underline"
+                              >
+                                Download
+                              </a>
+                            </div>
+                          ) : (
+                            "No evidence"
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           {employeeSkill ? (
@@ -627,7 +643,7 @@ export default function EmployeeDetail({
                   
                   {mandatorySkills.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
                         This employee has no active mandatory skills.
                       </td>
                     </tr>
@@ -726,14 +742,23 @@ export default function EmployeeDetail({
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {es.evidence ? (
+                                <div className="flex items-center space-x-2">
                                 <a 
-                                  href={es.evidence} 
+                                    href={`/api/training/skills/${es.id}/evidence/preview`} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="text-blue-600 hover:underline"
                                 >
-                                  View Evidence
+                                    Preview
+                                  </a>
+                                  <a 
+                                    href={`/api/training/skills/${es.id}/evidence/download?download=1`} 
+                                    download
+                                    className="text-blue-600 hover:underline"
+                                  >
+                                    Download
                                 </a>
+                                </div>
                               ) : (
                                 "No evidence"
                               )}

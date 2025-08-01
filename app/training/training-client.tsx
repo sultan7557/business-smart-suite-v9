@@ -63,7 +63,7 @@ export default function TrainingClient({
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = result.data.filename
+      a.download = result.data?.filename || 'Training_Matrix.xlsx'
       document.body.appendChild(a)
       a.click()
       
@@ -184,20 +184,30 @@ export default function TrainingClient({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Occupation</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed Courses</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {typeof employees === 'undefined' ? (
-              <tr><td colSpan={4}><div className="py-8 flex justify-center"><Loader size="lg" message="Loading employees..." /></div></td></tr>
+              <tr><td colSpan={5}><div className="py-8 flex justify-center"><Loader size="lg" message="Loading employees..." /></div></td></tr>
             ) : filteredEmployees.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                   No employees found
                 </td>
               </tr>
             ) : (
-              filteredEmployees.map((employee) => (
+              filteredEmployees.map((employee) => {
+                // Get completed courses (skills)
+                const completedSkills = (employee.employeeSkills || []).map((es: { skill: { name: string }, dateCompleted: string }) => ({
+                  name: es.skill?.name,
+                  dateCompleted: es.dateCompleted,
+                })).filter((s) => !!s.name)
+                const maxVisible = 3
+                const visibleSkills = completedSkills.slice(0, maxVisible)
+                const hiddenSkills = completedSkills.slice(maxVisible)
+                return (
                 <tr key={employee.id} className={employee.archived ? "bg-gray-100" : ""}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -227,6 +237,21 @@ export default function TrainingClient({
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {employee.department}
                   </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex flex-wrap gap-1 items-center">
+                        {visibleSkills.map((skill: { name: string; dateCompleted: string }, idx: number) => (
+                          <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium" title={skill.dateCompleted ? `Completed: ${new Date(skill.dateCompleted).toLocaleDateString()}` : undefined}>
+                            {skill.name}
+                          </span>
+                        ))}
+                        {hiddenSkills.length > 0 && (
+                          <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs font-medium" title={hiddenSkills.map((s: { name: string; dateCompleted: string }) => `${s.name}${s.dateCompleted ? ` (Completed: ${new Date(s.dateCompleted).toLocaleDateString()})` : ''}`).join(', ')}>
+                            +{hiddenSkills.length} more
+                          </span>
+                        )}
+                        {completedSkills.length === 0 && <span className="text-gray-400">None</span>}
+                      </div>
+                    </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Button 
                       variant="outline" 
@@ -249,7 +274,8 @@ export default function TrainingClient({
                     )}
                   </td>
                 </tr>
-              ))
+                )
+              })
             )}
           </tbody>
         </table>

@@ -91,16 +91,13 @@ export default function Sidebar() {
     { icon: <FileInput className="h-5 w-5" />, label: "Forms", href: "/forms" },
     { icon: <Award className="h-5 w-5" />, label: "Certificates", href: "/certificate" },
     { icon: <BarChart className="h-5 w-5" />, label: "Registers", href: "/registers" },
-    { icon: <AlertTriangle className="h-5 w-5" />, label: "Corrective Actions", href: "/corrective-actions" },
     { icon: <Briefcase className="h-5 w-5" />, label: "Business Continuity", href: "/business-continuity" },
     { icon: <Users className="h-5 w-5" />, label: "Management Reviews", href: "/management-reviews" },
     { icon: <FileDescription className="h-5 w-5" />, label: "Job Descriptions", href: "/job-descriptions" },
     { icon: <FileWarning className="h-5 w-5" />, label: "Work Instructions", href: "/work-instructions" },
     { icon: <AlertOctagon className="h-5 w-5" />, label: "Risk Assessments", href: "/risk-assessments" },
     { icon: <AlertOctagon className="h-5 w-5" />, label: "COSHH", href: "/coshh" },
-    { icon: <HardHat className="h-5 w-5" />, label: "HSE Guidance", href: "/hse-guidance" },
     { icon: <FileCode className="h-5 w-5" />, label: "Technical File", href: "/technical-file" },
-    { icon: <FileText className="h-5 w-5" />, label: "Environmental Guidance", href: "/environmental-guidance" },
   ]
 
   // Convert custom sections to menu items

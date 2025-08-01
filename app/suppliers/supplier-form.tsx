@@ -37,6 +37,8 @@ interface SupplierFormProps {
   documents?: Array<{
     id: string
     title: string
+    uploadedAt: string
+    expiryDate: string | null
   }>
   isEdit?: boolean
 }
@@ -392,11 +394,37 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                 <p className="text-gray-500">Loading documents...</p>
               ) : docList.length > 0 ? (
                 <div className="space-y-2">
-                  {docList.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
-                      <span className="flex-1 text-blue-600 hover:underline">
+                  <div className="grid grid-cols-4 gap-4 p-3 bg-gray-100 rounded-md font-medium text-sm">
+                    <div>Document</div>
+                    <div>Uploaded</div>
+                    <div>Expiry Date</div>
+                    <div>Actions</div>
+                  </div>
+                  {docList.map((doc) => {
+                    const expiryDate = doc.expiryDate ? new Date(doc.expiryDate) : null;
+                    const today = new Date();
+                    const isExpired = expiryDate && expiryDate < today;
+                    const isExpiringSoon = expiryDate && expiryDate > today && expiryDate.getTime() - today.getTime() < 30 * 24 * 60 * 60 * 1000; // 30 days
+                    
+                    return (
+                      <div key={doc.id} className="grid grid-cols-4 gap-4 p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors items-center">
+                        <span className="text-blue-600 hover:underline">
                         {doc.title}
                       </span>
+                        <span className="text-sm text-gray-600">
+                          {new Date(doc.uploadedAt).toLocaleDateString()}
+                        </span>
+                        <span className={`text-sm ${isExpired ? 'text-red-600 font-medium' : isExpiringSoon ? 'text-orange-600 font-medium' : 'text-gray-600'}`}>
+                          {expiryDate ? (
+                            <span className="flex items-center gap-2">
+                              {expiryDate.toLocaleDateString()}
+                              {isExpired && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Expired</span>}
+                              {isExpiringSoon && <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Expiring Soon</span>}
+                            </span>
+                          ) : (
+                            'No expiry'
+                          )}
+                        </span>
                       <div className="flex items-center space-x-2">
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/suppliers/${supplier?.id}/documents/${doc.id}`}>Preview</Link>
@@ -413,7 +441,8 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                         </Button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-gray-500">No documents uploaded yet.</p>

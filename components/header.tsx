@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, HelpCircle } from "lucide-react"
+import { Search, HelpCircle, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import CompanySelector from "./company-selector"
 import { UserNav } from "./user-nav"
@@ -54,12 +54,19 @@ export default function Header() {
 
   return (
     <header className="w-full">
-      <div className="bg-blue-100 p-2 flex justify-between items-center">
-        <CompanySelector />
-        <div className="flex items-center gap-2">
+      <div className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 p-4 flex justify-between items-center relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/50 via-purple-900/30 to-slate-900/50"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.3),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(120,119,198,0.2),transparent_50%)]"></div>
+        
+        <div className="flex items-center relative z-10">
+          <CompanySelector />
+        </div>
+        <div className="flex items-center gap-4 relative z-10">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 backdrop-blur-sm">
                 <Search className="h-5 w-5" />
               </Button>
             </DialogTrigger>
@@ -87,30 +94,71 @@ export default function Header() {
                 {searchResults.length > 0 ? (
                   <div className="space-y-2">
                     {searchResults.map((result) => (
-                      <Link
+                      <div
                         key={result.id}
-                        href={result.href}
-                        className="block p-2 hover:bg-gray-100 rounded-md transition-colors"
-                        onClick={() => router.push(result.href)}
+                        className="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          router.push(result.href)
+                        }}
                       >
-                        <div className="font-medium">{result.title}</div>
-                        <div className="text-sm text-gray-500">
-                          {result.type} in {result.section}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-gray-900">{result.title}</h4>
+                            <p className="text-sm text-gray-600">{result.section}</p>
+                          </div>
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            {result.type}
+                          </span>
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 ) : searchQuery ? (
-                  <div className="text-center text-gray-500 py-8">
-                    {isSearching ? "Searching..." : "No results found"}
+                  <div className="text-center py-8 text-gray-500">
+                    No results found for "{searchQuery}"
                   </div>
-                ) : null}
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    Start typing to search...
+                  </div>
+                )}
               </ScrollArea>
             </DialogContent>
           </Dialog>
-          <Button variant="ghost" size="icon">
-            <HelpCircle className="h-5 w-5" />
-          </Button>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 backdrop-blur-sm">
+                <HelpCircle className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Help & Support</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Quick Navigation</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Use the Business Smart Suite dropdown in the top-left corner to quickly navigate between different sections of the application.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Search Functionality</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Search across all sections using the search icon. Results will show documents, policies, and other relevant content.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Need More Help?</h4>
+                  <p className="text-sm text-gray-600">
+                    Contact your system administrator for additional support or training.
+                  </p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <UserNav />
         </div>
       </div>

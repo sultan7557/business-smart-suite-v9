@@ -20,6 +20,7 @@ interface DocumentUploadProps {
 export default function DocumentUpload({ supplierId, onUploadComplete }: DocumentUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [notes, setNotes] = useState("")
+  const [expiryDate, setExpiryDate] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -53,6 +54,7 @@ export default function DocumentUpload({ supplierId, onUploadComplete }: Documen
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('notes', notes);
+      formData.append('expiryDate', expiryDate);
 
       const result = await uploadSupplierDocument(supplierId, formData);
         
@@ -60,6 +62,7 @@ export default function DocumentUpload({ supplierId, onUploadComplete }: Documen
         toast.success('Document uploaded successfully');
         setSelectedFile(null);
         setNotes("");
+        setExpiryDate("");
         router.refresh();
         if (onUploadComplete) onUploadComplete();
       } else {
@@ -121,6 +124,17 @@ export default function DocumentUpload({ supplierId, onUploadComplete }: Documen
         </div>
       )}
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Expiry Date (optional)</label>
+          <Input
+            type="date"
+            value={expiryDate}
+            onChange={(e) => setExpiryDate(e.target.value)}
+            placeholder="Select expiry date"
+          />
+        </div>
+
       <div className="space-y-2">
         <label className="text-sm font-medium">Notes (optional)</label>
         <Textarea
@@ -128,6 +142,7 @@ export default function DocumentUpload({ supplierId, onUploadComplete }: Documen
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Add any notes about this document..."
         />
+        </div>
       </div>
 
       <Button

@@ -931,6 +931,7 @@ model SupplierDocument {
   uploadedById      String
   uploadedBy        User      @relation(fields: [uploadedById], references: [id])
   uploadedAt        DateTime  @default(now())
+  expiryDate        DateTime?
   versions          SupplierDocumentVersion[]
 }
 
