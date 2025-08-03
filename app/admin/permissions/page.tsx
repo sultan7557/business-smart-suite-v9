@@ -11,17 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useRouter } from 'next/navigation';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info, Trash2, UserX, UserCheck, RotateCcw, AlertTriangle } from "lucide-react";
 
 const inviteUserSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   systemId: z.string().min(1, "System ID is required"),
   roleId: z.string().optional(),
-});
-
-const groupSchema = z.object({
-  name: z.string().min(1, "Group name is required"),
-  description: z.string().optional(),
 });
 
 type User = {
@@ -34,34 +31,19 @@ type User = {
   updatedAt: string;
 };
 
-type Group = {
-  id: string;
-  name: string;
-  description?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  _count: {
-    users: number;
-  };
-};
-
 const PermissionsPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [loadingGroups, setLoadingGroups] = useState(true);
   const [userError, setUserError] = useState<string | null>(null);
-  const [groupError, setGroupError] = useState<string | null>(null);
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteSystemId, setInviteSystemId] = useState('rkms-portal');
   const [inviteRoleId, setInviteRoleId] = useState('');
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
-  const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
-  const [newGroupDescription, setNewGroupDescription] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [roles, setRoles] = useState<{ id: string; name: string; description?: string | null }[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [actionType, setActionType] = useState<'deactivate' | 'reactivate' | 'delete' | null>(null);
+  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
 
   const router = useRouter();
 
@@ -83,24 +65,6 @@ const PermissionsPage: React.FC = () => {
     }
   }, []);
 
-  const fetchGroups = useCallback(async () => {
-    setLoadingGroups(true);
-    setGroupError(null);
-    try {
-      const response = await fetch('/api/groups');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setGroups(data.groups);
-    } catch (err: any) {
-      setGroupError(err.message);
-      toast.error("Failed to fetch groups: " + err.message);
-    } finally {
-      setLoadingGroups(false);
-    }
-  }, []);
-
   const fetchRoles = useCallback(async () => {
     try {
       const response = await fetch('/api/roles');
@@ -116,9 +80,8 @@ const PermissionsPage: React.FC = () => {
 
   useEffect(() => {
     fetchUsers();
-    fetchGroups();
     fetchRoles();
-  }, [fetchUsers, fetchGroups, fetchRoles]);
+  }, [fetchUsers, fetchRoles]);
 
   const handleInviteUser = async () => {
     try {
@@ -159,104 +122,128 @@ const PermissionsPage: React.FC = () => {
     }
   };
 
-  const handleCreateGroup = async () => {
-    try {
-      const validatedData = groupSchema.parse({
-        name: newGroupName,
-        description: newGroupDescription || undefined,
-      });
-
-      const response = await fetch('/api/groups', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...validatedData,
-          userIds: selectedUsers,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
-      toast.success("Group created successfully!");
-      setNewGroupName('');
-      setNewGroupDescription('');
-      setSelectedUsers([]);
-      setIsCreateGroupDialogOpen(false);
-      fetchGroups();
-    } catch (err: any) {
-      if (err instanceof z.ZodError) {
-        err.issues.forEach(issue => {
-          toast.error(issue.message);
-        });
-      } else {
-        toast.error("Failed to create group: " + err.message);
-      }
-    }
-  };
-
   const handleViewUserPermissions = (userId: string) => {
     router.push(`/admin/permissions/users/${userId}`);
   };
 
-  const handleViewGroupPermissions = (groupId: string) => {
-    router.push(`/admin/permissions/groups/${groupId}`);
+  const handleUserAction = (user: User, action: 'deactivate' | 'reactivate' | 'delete') => {
+    setSelectedUser(user);
+    setActionType(action);
+    setIsActionDialogOpen(true);
   };
 
-  const handleViewGroupUsers = (groupId: string) => {
-    router.push(`/admin/permissions/groups/${groupId}/users`);
-  };
-
-  const handleDeleteGroup = async (groupId: string) => {
-    if (!confirm('Are you sure you want to delete this group? This action cannot be undone.')) {
-      return;
-    }
+  const confirmUserAction = async () => {
+    if (!selectedUser || !actionType) return;
 
     try {
-      const response = await fetch(`/api/groups/${groupId}`, {
+      let response;
+      let successMessage = '';
+
+      switch (actionType) {
+        case 'deactivate':
+          response = await fetch(`/api/users/${selectedUser.id}`, {
+            method: 'DELETE',
+          });
+          successMessage = "User deactivated successfully!";
+          break;
+
+        case 'reactivate':
+          response = await fetch(`/api/users/${selectedUser.id}/reactivate`, {
+            method: 'POST',
+          });
+          successMessage = "User reactivated successfully!";
+          break;
+
+        case 'delete':
+          response = await fetch(`/api/users/${selectedUser.id}/delete`, {
         method: 'DELETE',
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete group');
+          successMessage = "User permanently deleted!";
+          break;
       }
 
-      toast.success('Group deleted successfully');
-      fetchGroups(); // Refresh the groups list
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete group');
+      if (!response?.ok) {
+        const errorData = await response?.json();
+        throw new Error(errorData?.error || `HTTP error! status: ${response?.status}`);
+      }
+
+      toast.success(successMessage);
+      setIsActionDialogOpen(false);
+      setSelectedUser(null);
+      setActionType(null);
+      fetchUsers(); // Refresh the users list
+    } catch (err: any) {
+      toast.error(`Failed to ${actionType} user: ${err.message}`);
     }
   };
 
-  const handleDeleteUserFromGroup = async (groupId: string, userId: string) => {
-    if (!confirm('Are you sure you want to remove this user from the group?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/groups/${groupId}/users?userId=${userId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to remove user from group');
-      }
-
-      toast.success('User removed from group successfully');
-      fetchGroups(); // Refresh the groups list
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to remove user from group');
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case 'deactivate':
+        return <UserX className="w-5 h-5 text-orange-600" />;
+      case 'reactivate':
+        return <UserCheck className="w-5 h-5 text-green-600" />;
+      case 'delete':
+        return <Trash2 className="w-5 h-5 text-red-600" />;
+      default:
+        return <AlertTriangle className="w-5 h-5 text-gray-600" />;
     }
   };
 
-  if (loadingUsers || loadingGroups) return <div>Loading permissions data...</div>;
-  if (userError || groupError) return <div>Error loading data. Users: {userError}, Groups: {groupError}</div>;
+  const getActionTitle = (action: string) => {
+    switch (action) {
+      case 'deactivate':
+        return 'Deactivate User';
+      case 'reactivate':
+        return 'Reactivate User';
+      case 'delete':
+        return 'Permanently Delete User';
+      default:
+        return 'User Action';
+    }
+  };
+
+  const getActionDescription = (action: string) => {
+    switch (action) {
+      case 'deactivate':
+        return 'This will prevent the user from accessing the system. They can be reactivated later.';
+      case 'reactivate':
+        return 'This will restore the user\'s access to the system.';
+      case 'delete':
+        return 'This will permanently delete the user and all their data. This action cannot be undone.';
+      default:
+        return 'Are you sure you want to perform this action?';
+    }
+  };
+
+  const getActionButtonText = (action: string) => {
+    switch (action) {
+      case 'deactivate':
+        return 'Deactivate User';
+      case 'reactivate':
+        return 'Reactivate User';
+      case 'delete':
+        return 'Delete Permanently';
+      default:
+        return 'Confirm Action';
+    }
+  };
+
+  const getActionButtonVariant = (action: string) => {
+    switch (action) {
+      case 'deactivate':
+        return 'outline';
+      case 'reactivate':
+        return 'default';
+      case 'delete':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  if (loadingUsers) return <div>Loading permissions data...</div>;
+  if (userError) return <div>Error loading data. Users: {userError}</div>;
 
   return (
     <div className="space-y-6">
@@ -338,131 +325,98 @@ const PermissionsPage: React.FC = () => {
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.status}</TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" onClick={() => handleViewUserPermissions(user.id)}>View/Edit Permissions</Button>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                      user.status === 'INACTIVE' ? 'bg-red-100 text-red-800' :
+                      user.status === 'INVITED' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {user.status}
+                    </span>
                   </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage groups</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {groups.length === 0 ? (
-            <p>There are currently no groups for this system. Use the options below to create a new group.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Users</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groups.map((group) => (
-                  <TableRow key={group.id}>
-                    <TableCell>{group.name}</TableCell>
-                    <TableCell>{group.description}</TableCell>
-                    <TableCell>{group._count.users}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => router.push(`/admin/permissions/groups/${group.id}/users`)}
+                        onClick={() => handleViewUserPermissions(user.id)}
                         >
-                          View Users
+                        View/Edit Permissions
                         </Button>
+                      
+                      {user.status === 'ACTIVE' && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => router.push(`/admin/permissions/groups/${group.id}/permissions`)}
+                          onClick={() => handleUserAction(user, 'deactivate')}
                         >
-                          Manage Permissions
+                          <UserX className="w-4 h-4 mr-1" />
+                          Deactivate
+                        </Button>
+                      )}
+                      
+                      {user.status === 'INACTIVE' && (
+                        <>
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            onClick={() => handleUserAction(user, 'reactivate')}
+                          >
+                            <RotateCcw className="w-4 h-4 mr-1" />
+                            Reactivate
                         </Button>
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteGroup(group.id)}
+                            onClick={() => handleUserAction(user, 'delete')}
                         >
-                          Delete Group
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
                         </Button>
+                        </>
+                      )}
                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          )}
-          <div className="flex gap-4 items-end">
-            <Button onClick={() => setIsCreateGroupDialogOpen(true)}>Create New Group</Button>
-          </div>
         </CardContent>
       </Card>
 
-      <Dialog open={isCreateGroupDialogOpen} onOpenChange={setIsCreateGroupDialogOpen}>
+      {/* User Action Confirmation Dialog */}
+      <Dialog open={isActionDialogOpen} onOpenChange={setIsActionDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create New Group</DialogTitle>
-            <DialogDescription>Enter group details and select users to add to the group.</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              {actionType && getActionIcon(actionType)}
+              {actionType && getActionTitle(actionType)}
+            </DialogTitle>
+            <DialogDescription>
+              {actionType && getActionDescription(actionType)}
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="group-name" className="text-right">Name</Label>
-              <Input
-                id="group-name"
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                className="col-span-3"
-                placeholder="Enter group name"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="group-description" className="text-right">Description</Label>
-              <Input
-                id="group-description"
-                value={newGroupDescription}
-                onChange={(e) => setNewGroupDescription(e.target.value)}
-                className="col-span-3"
-                placeholder="Enter group description (optional)"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="group-users" className="text-right">Users</Label>
-              <div className="col-span-3 space-y-2">
-                {users.map((user) => (
-                  <div key={user.id} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={`user-${user.id}`}
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedUsers([...selectedUsers, user.id]);
-                        } else {
-                          setSelectedUsers(selectedUsers.filter(id => id !== user.id));
-                        }
-                      }}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <label htmlFor={`user-${user.id}`} className="text-sm">
-                      {user.name} ({user.email})
-                    </label>
-                  </div>
-                ))}
+          <div className="py-4">
+            {selectedUser && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="font-medium">{selectedUser.name}</p>
+                <p className="text-sm text-gray-600">{selectedUser.email}</p>
+                <p className="text-sm text-gray-600">Username: {selectedUser.username}</p>
+                <p className="text-sm text-gray-600">Status: {selectedUser.status}</p>
               </div>
-            </div>
+            )}
           </div>
           <DialogFooter>
-            <Button type="submit" onClick={handleCreateGroup}>Create Group</Button>
+            <Button variant="outline" onClick={() => setIsActionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant={actionType ? getActionButtonVariant(actionType) : 'outline'} 
+              onClick={confirmUserAction}
+            >
+              {actionType && getActionButtonText(actionType)}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

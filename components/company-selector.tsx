@@ -34,7 +34,7 @@ import {
   Scale,
   Truck,
   GraduationCap,
-  Settings,
+  Sparkles,
 } from "lucide-react"
 
 export default function CompanySelector() {
@@ -87,7 +87,6 @@ export default function CompanySelector() {
       label: "Administration",
       items: [
         { icon: <Users className="h-4 w-4" />, label: "Permissions", href: "/admin/permissions" },
-        { icon: <Settings className="h-4 w-4" />, label: "Settings", href: "/settings" },
       ]
     }
   ]
@@ -95,10 +94,14 @@ export default function CompanySelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50">
-      Business Smart Suite
-      <ChevronDown className="h-4 w-4" />
-    </Button>
+        <Button 
+          variant="ghost" 
+          className="flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 border border-white/20 px-4 py-2 h-auto"
+        >
+          <Sparkles className="h-4 w-4" />
+          <span className="text-sm font-medium">Business Smart Suite</span>
+          <ChevronDown className="h-4 w-4" />
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         className="w-72 sm:w-80 max-h-[80vh] p-0" 

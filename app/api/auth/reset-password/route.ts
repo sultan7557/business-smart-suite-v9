@@ -17,11 +17,25 @@ export async function POST(request: NextRequest) {
     const validatedData = resetPasswordSchema.parse(body);
     const { token, newPassword } = validatedData;
 
+    // Validate password strength
+    if (!/[A-Z]/.test(newPassword)) {
+      return NextResponse.json({ error: 'Password must contain at least one uppercase letter' }, { status: 400 });
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      return NextResponse.json({ error: 'Password must contain at least one lowercase letter' }, { status: 400 });
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      return NextResponse.json({ error: 'Password must contain at least one number' }, { status: 400 });
+    }
+
     let decodedToken;
     try {
       decodedToken = verify(token, JWT_SECRET) as { userId: string };
     } catch (error) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
+      if (error instanceof Error && error.name === 'TokenExpiredError') {
+        return NextResponse.json({ error: 'Password setup link has expired. Please request a new one.' }, { status: 400 });
+      }
+      return NextResponse.json({ error: 'Invalid password setup link' }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({
@@ -32,22 +46,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if the token is already used or invalid (e.g., if we were storing tokens in DB for single use)
-    // For this basic implementation, JWT expiration handles single use implicitly after a time limit.
+    // Check if user is active
+    if (user.status !== 'ACTIVE') {
+      return NextResponse.json({ error: 'User account is not active' }, { status: 400 });
+    }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
 
+    // Update the user's password
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: { 
+        password: hashedPassword,
+        updatedAt: new Date()
+      },
     });
 
-    return NextResponse.json({ message: 'Password reset successfully' });
+    return NextResponse.json({ 
+      message: 'Password set successfully! You can now log in with your new password.',
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name 
+      }
+    }, { status: 200 });
+
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ errors: error.issues }, { status: 400 });
+      const errorMessage = error.issues.map(issue => issue.message).join(', ');
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
     console.error('Password reset error:', error);
-    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+    return NextResponse.json({ error: 'An unexpected error occurred while setting your password' }, { status: 500 });
   }
 } 

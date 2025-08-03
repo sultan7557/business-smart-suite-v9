@@ -1,68 +1,119 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getUser } from "@/lib/auth"
-import { z } from "zod"
 
-const roleSchema = z.object({
-  name: z.string().min(1, "Role name is required").max(50, "Role name cannot exceed 50 characters"),
-  description: z.string().optional(),
-})
+// Standard roles that should be shown in the UI
+const STANDARD_ROLES = [
+  'View Only',
+  'Edit', 
+  'Delete',
+  'Admin',
+  'Approve',
+  'Manage Users'
+];
 
 export async function GET(request: NextRequest) {
   try {
-    const currentUser = await getUser()
+    const currentUser = await getUser();
 
     if (!currentUser) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const roles = await prisma.role.findMany({
-      orderBy: { name: "asc" },
-    })
+    // Get all roles from database
+    const allRoles = await prisma.role.findMany({
+      orderBy: { name: 'asc' },
+    });
 
-    return NextResponse.json({ roles })
+    // Filter to only show standard roles, preferring the correct case
+    const filteredRoles = [];
+    
+    for (const standardRole of STANDARD_ROLES) {
+      // Find the role with exact name match first
+      let role = allRoles.find(r => r.name === standardRole);
+      
+      // If not found, find case-insensitive match
+      if (!role) {
+        role = allRoles.find(r => r.name.toLowerCase() === standardRole.toLowerCase());
+      }
+      
+      if (role) {
+        // Use the standard name for display
+        filteredRoles.push({
+          ...role,
+          name: standardRole, // Always use the standard name
+          description: getRoleDescription(standardRole)
+        });
+      }
+    }
+
+    return NextResponse.json({ roles: filteredRoles });
   } catch (error) {
-    console.error("List roles error:", error)
-    return NextResponse.json({ error: "An error occurred while fetching roles" }, { status: 500 })
+    console.error("Get roles error:", error);
+    return NextResponse.json({ 
+      error: "An error occurred while fetching roles",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 });
+  }
+}
+
+function getRoleDescription(roleName: string): string {
+  switch (roleName) {
+    case 'View Only':
+      return 'Can view content but cannot edit';
+    case 'Edit':
+      return 'Can view and edit content';
+    case 'Delete':
+      return 'Can view, edit, and delete content';
+    case 'Admin':
+      return 'Full administrative access';
+    case 'Approve':
+      return 'Can approve changes and content';
+    case 'Manage Users':
+      return 'Can manage user accounts and permissions';
+    default:
+      return '';
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getUser()
+    const currentUser = await getUser();
 
     if (!currentUser) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const body = await request.json()
-    const validatedData = roleSchema.parse(body)
+    const body = await request.json();
+    const { name, description, systemId } = body;
 
-    const { name, description } = validatedData
+    if (!name) {
+      return NextResponse.json({ error: "Role name is required" }, { status: 400 });
+    }
 
-    const existingRole = await prisma.role.findUnique({
+    // Check if role already exists
+    const existingRole = await prisma.role.findFirst({
       where: { name },
-    })
+    });
 
     if (existingRole) {
-      return NextResponse.json({ error: "Role with this name already exists" }, { status: 409 })
+      return NextResponse.json({ error: "Role with this name already exists" }, { status: 409 });
     }
 
     const newRole = await prisma.role.create({
       data: {
         name,
-        description,
+        description: description || null,
+        systemId: systemId || 'rkms-portal',
       },
-    })
+    });
 
-    // TODO: Add audit trail for role creation
-
-    return NextResponse.json({ message: "Role created successfully", role: newRole }, { status: 201 })
+    return NextResponse.json({ message: "Role created successfully", role: newRole }, { status: 201 });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 })
-    }
-    console.error("Create role error:", error)
-    return NextResponse.json({ error: "An error occurred while creating the role" }, { status: 500 })
+    console.error("Create role error:", error);
+    return NextResponse.json({ 
+      error: "An error occurred while creating the role",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 });
   }
 } 

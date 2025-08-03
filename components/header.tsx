@@ -4,7 +4,6 @@ import { Search, HelpCircle, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import CompanySelector from "./company-selector"
 import { UserNav } from "./user-nav"
-import { getUser } from "@/lib/auth"
 import { useState } from "react"
 import {
   Dialog,

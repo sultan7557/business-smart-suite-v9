@@ -11,7 +11,7 @@ const userUpdateSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters long").optional(),
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const currentUser = await getUser();
 
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const currentUser = await getUser();
 
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const validatedData = userUpdateSchema.parse(body);
 
@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const currentUser = await getUser();
 
@@ -102,7 +102,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Deactivate the user instead of hard deleting
     const deactivatedUser = await prisma.user.update({

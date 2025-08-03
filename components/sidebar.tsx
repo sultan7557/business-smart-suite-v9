@@ -19,7 +19,6 @@ import {
   HardHat,
   FileCode,
   ChevronDown,
-  Settings,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
@@ -177,30 +176,7 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      <div className={`p-4 border-t border-white/10 ${isCollapsed ? "px-2" : ""}`}>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link 
-                href="/settings" 
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors group ${
-                  isCollapsed ? "justify-center" : ""
-                }`}
-              >
-                <Settings className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
-                {!isCollapsed && (
-                  <span className="text-sm font-medium">Settings</span>
-                )}
-              </Link>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right" className="bg-slate-900 text-white">
-                Settings
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+      {/* Removed Settings section - not needed */}
     </aside>
   )
 }

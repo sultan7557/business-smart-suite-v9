@@ -217,13 +217,23 @@ export async function verifyAuth(token: string) {
 
 export async function login(username: string, password: string, rememberMe = false) {
   try {
-    // Find user by username
-    const user = await prisma.user.findUnique({
-      where: { username },
+    // Find user by username or email
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username },
+          { email: username }
+        ]
+      },
+      include: {
+        permissions: {
+          include: { role: true }
+        }
+      }
     })
 
     if (!user) {
-      console.log("Login attempt: User not found for username:", username);
+      console.log("Login attempt: User not found for username/email:", username);
       return null
     }
 
@@ -235,12 +245,24 @@ export async function login(username: string, password: string, rememberMe = fal
       return null
     }
 
+    // Get user's primary role (first permission or default)
+    let primaryRole = 'user';
+    if (user.permissions && user.permissions.length > 0) {
+      // Find admin role first, then any other role
+      const adminPermission = user.permissions.find(p => p.role.name === 'Admin');
+      if (adminPermission) {
+        primaryRole = 'admin';
+      } else {
+        primaryRole = user.permissions[0].role.name;
+      }
+    }
+
     // Create JWT token
     const token = await new SignJWT({
       id: user.id,
       username: user.username,
       name: user.name,
-      role: user.role,
+      role: primaryRole, // Use the determined primary role
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
@@ -269,7 +291,7 @@ export async function login(username: string, password: string, rememberMe = fal
       id: user.id,
       username: user.username,
       name: user.name,
-      role: user.role,
+      role: primaryRole, // Return the determined primary role
     }
   } catch (error) {
     console.error("Login error in auth.ts:", error)

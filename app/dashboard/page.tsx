@@ -25,7 +25,6 @@ import {
   FileWarning,
   AlertOctagon,
   FileCode,
-  Settings,
   ArrowRight,
   Sparkles,
   TrendingUp,
@@ -33,6 +32,7 @@ import {
   Zap,
   AlertTriangle,
   HardHat,
+  Settings
 } from "lucide-react"
 import DashboardCharts from "@/components/dashboard-charts"
 import { toast } from "@/components/ui/use-toast"
@@ -123,7 +123,6 @@ export default function DashboardPage() {
       icon: <Settings className="h-6 w-6" />,
       items: [
         { icon: <Users className="h-5 w-5" />, label: "Permissions", href: "/admin/permissions", description: "User access management" },
-        { icon: <Settings className="h-5 w-5" />, label: "Settings", href: "/settings", description: "System configuration" },
       ]
     }
   ]
@@ -325,8 +324,8 @@ export default function DashboardPage() {
                               {section.title}
                             </h2>
                           </div>
-                        </div>
-                      </div>
+                  </div>
+                </div>
 
                       {/* Revolutionary Navigation Grid */}
                       <div className="relative p-10 lg:p-14">
@@ -382,13 +381,13 @@ export default function DashboardPage() {
                                     <div className="w-12 h-12 lg:w-16 lg:h-16 drop-shadow-lg flex items-center justify-center">
                                       {item.icon}
                                     </div>
-                                  </div>
+                </div>
                                   
                                   <div className="flex-1 flex flex-col justify-center px-1">
                                     <h3 className="font-poppins font-semibold text-slate-200 text-xs lg:text-sm leading-tight drop-shadow-lg group-hover/item:text-white transition-all duration-700 line-clamp-2">
                                       {item.label}
                                     </h3>
-                                  </div>
+              </div>
                                   
                                   {/* Enterprise Hover Glow */}
                                   <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover/item:opacity-20 transition-all duration-1000

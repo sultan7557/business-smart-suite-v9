@@ -22,7 +22,7 @@ const grantPermissionSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const currentUser = await getUser();
@@ -31,7 +31,7 @@ export async function GET(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const userId = context.params.id;
+    const { id: userId } = await context.params;
 
     const permissions = await prisma.permission.findMany({
       where: { userId },
@@ -52,7 +52,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const currentUser = await getUser();
@@ -61,7 +61,7 @@ export async function POST(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const userId = context.params.id;
+    const { id: userId } = await context.params;
     const body = await request.json();
     
     try {
@@ -75,6 +75,15 @@ export async function POST(
 
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      // Check if role exists
+      const role = await prisma.role.findUnique({
+        where: { id: roleId },
+      });
+
+      if (!role) {
+        return NextResponse.json({ error: "Role not found" }, { status: 404 });
       }
 
       // Check if permission already exists
