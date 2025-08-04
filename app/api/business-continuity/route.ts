@@ -37,7 +37,13 @@ export const GET = withAuth(async (request: NextRequest) => {
       ],
     })
 
-    return NextResponse.json(businessContinuities)
+    return NextResponse.json(businessContinuities, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error fetching business continuities:", error)
     return NextResponse.json({ error: "Failed to fetch business continuities" }, { status: 500 })
@@ -78,7 +84,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(businessContinuity)
+    return NextResponse.json(businessContinuity, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating business continuity:", error)
     return NextResponse.json({ error: "Failed to create business continuity" }, { status: 500 })
@@ -140,7 +152,13 @@ export const PUT = withAuth(async (request: NextRequest) => {
     })
 
     return NextResponse.json({
-      message: `Successfully ${action}d ${updatedBusinessContinuities.count} business continuity(ies)`,
+      message: `Successfully ${action}d ${updatedBusinessContinuities.count} business continuity(ies, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })`,
       count: updatedBusinessContinuities.count,
     })
   } catch (error) {
@@ -169,7 +187,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       })
 
       return NextResponse.json({
-        message: `Successfully deleted ${deletedBusinessContinuities.count} business continuity(ies) permanently`,
+        message: `Successfully deleted ${deletedBusinessContinuities.count} business continuity(ies, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      }) permanently`,
         count: deletedBusinessContinuities.count,
       })
     } else {
@@ -186,7 +210,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       })
 
       return NextResponse.json({
-        message: `Successfully archived ${archivedBusinessContinuities.count} business continuity(ies)`,
+        message: `Successfully archived ${archivedBusinessContinuities.count} business continuity(ies, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })`,
         count: archivedBusinessContinuities.count,
       })
     }

@@ -37,7 +37,13 @@ export const GET = withAuth(async (request: NextRequest) => {
       ],
     })
 
-    return NextResponse.json(certificates)
+    return NextResponse.json(certificates, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error fetching certificates:", error)
     return NextResponse.json({ error: "Failed to fetch certificates" }, { status: 500 })
@@ -78,7 +84,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(certificate)
+    return NextResponse.json(certificate, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating certificate:", error)
     return NextResponse.json({ error: "Failed to create certificate" }, { status: 500 })
@@ -140,7 +152,13 @@ export const PUT = withAuth(async (request: NextRequest) => {
     })
 
     return NextResponse.json({
-      message: `Successfully ${action}d ${updatedCertificates.count} certificate(s)`,
+      message: `Successfully ${action}d ${updatedCertificates.count} certificate(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })`,
       count: updatedCertificates.count,
     })
   } catch (error) {
@@ -169,7 +187,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       })
 
       return NextResponse.json({
-        message: `Successfully deleted ${deletedCertificates.count} certificate(s) permanently`,
+        message: `Successfully deleted ${deletedCertificates.count} certificate(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      }) permanently`,
         count: deletedCertificates.count,
       })
     } else {
@@ -186,7 +210,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       })
 
       return NextResponse.json({
-        message: `Successfully archived ${archivedCertificates.count} certificate(s)`,
+        message: `Successfully archived ${archivedCertificates.count} certificate(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })`,
         count: archivedCertificates.count,
       })
     }

@@ -37,7 +37,13 @@ export const GET = withAuth(async (request: NextRequest) => {
       ],
     })
 
-    return NextResponse.json(managementReviews)
+    return NextResponse.json(managementReviews, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error fetching management reviews:", error)
     return NextResponse.json({ error: "Failed to fetch management reviews" }, { status: 500 })
@@ -97,7 +103,13 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json(managementReview)
+    return NextResponse.json(managementReview, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("[MANAGEMENT_REVIEWS_POST]", error)
     return new NextResponse("Internal error", { status: 500 })
@@ -159,7 +171,13 @@ export const PUT = withAuth(async (request: NextRequest) => {
     })
 
     return NextResponse.json({
-      message: `Successfully ${action}d ${updatedManagementReviews.count} management review(s)`,
+      message: `Successfully ${action}d ${updatedManagementReviews.count} management review(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })`,
       count: updatedManagementReviews.count,
     })
   } catch (error) {
@@ -188,7 +206,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       })
 
       return NextResponse.json({
-        message: `Successfully deleted ${deletedManagementReviews.count} management review(s) permanently`,
+        message: `Successfully deleted ${deletedManagementReviews.count} management review(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      }) permanently`,
         count: deletedManagementReviews.count,
       })
     } else {
@@ -205,7 +229,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       })
 
       return NextResponse.json({
-        message: `Successfully archived ${archivedManagementReviews.count} management review(s)`,
+        message: `Successfully archived ${archivedManagementReviews.count} management review(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })`,
         count: archivedManagementReviews.count,
       })
     }

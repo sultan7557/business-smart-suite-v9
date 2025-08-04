@@ -91,7 +91,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(correctiveAction)
+    return NextResponse.json(correctiveAction, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating corrective action:", error)
     return NextResponse.json({ error: "Failed to create corrective action" }, { status: 500 })

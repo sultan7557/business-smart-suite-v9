@@ -91,7 +91,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(procedure)
+    return NextResponse.json(procedure, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating procedure:", error)
     return NextResponse.json({ error: "Failed to create procedure" }, { status: 500 })

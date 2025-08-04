@@ -91,7 +91,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(coshh)
+    return NextResponse.json(coshh, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating COSHH:", error)
     return NextResponse.json({ error: "Failed to create COSHH" }, { status: 500 })

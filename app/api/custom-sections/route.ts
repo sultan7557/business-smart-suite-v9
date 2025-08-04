@@ -22,7 +22,13 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(sections)
+    return NextResponse.json(sections, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error fetching custom sections:", error)
     return NextResponse.json(
@@ -68,7 +74,13 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(section)
+    return NextResponse.json(section, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating custom section:", error)
     return NextResponse.json(
@@ -107,7 +119,13 @@ export async function PUT(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(section)
+    return NextResponse.json(section, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error updating custom section:", error)
     return NextResponse.json(
@@ -140,7 +158,13 @@ export async function DELETE(request: NextRequest) {
       data: { isActive: false },
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true }, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error deleting custom section:", error)
     return NextResponse.json(

@@ -91,7 +91,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(form)
+    return NextResponse.json(form, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating form:", error)
     return NextResponse.json({ error: "Failed to create form" }, { status: 500 })

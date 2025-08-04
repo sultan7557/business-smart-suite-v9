@@ -52,7 +52,13 @@ export const GET = withAuth(async (request: NextRequest) => {
       })
     }
 
-    return NextResponse.json(manuals)
+    return NextResponse.json(manuals, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error fetching manuals:", error)
     return NextResponse.json({ error: "Failed to fetch manuals" }, { status: 500 })
@@ -71,7 +77,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(manual)
+    return NextResponse.json(manual, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating manual:", error)
     return NextResponse.json({ error: "Failed to create manual" }, { status: 500 })

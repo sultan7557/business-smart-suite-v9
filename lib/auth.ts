@@ -359,12 +359,24 @@ export async function getUser() {
     });
   });
 
+  // Determine primary role from permissions
+  let primaryRole = 'user';
+  if (user.permissions && user.permissions.length > 0) {
+    // Find admin role first, then any other role
+    const adminPermission = user.permissions.find(p => p.role.name === 'Admin');
+    if (adminPermission) {
+      primaryRole = 'admin';
+    } else {
+      primaryRole = user.permissions[0].role.name;
+    }
+  }
+
   return {
     id: user.id,
     username: user.username,
     name: user.name,
     email: user.email,
-    role: user.role,
+    role: primaryRole,
     status: user.status,
     permissions: Array.from(effectivePermissions),
   }

@@ -91,7 +91,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(technicalFile)
+    return NextResponse.json(technicalFile, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating Technical File:", error)
     return NextResponse.json({ error: "Failed to create Technical File" }, { status: 500 })

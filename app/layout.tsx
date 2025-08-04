@@ -32,6 +32,16 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          /* Critical CSS for above-the-fold content */
+          body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+          .loading { display: flex; justify-content: center; align-items: center; height: 100vh; }
+          .header { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 1rem; }
+          .main { flex: 1; padding: 1rem; }
+        `
+      }} />
+
         <ThemeProvider>
           {isAdminPermissionsRoute ? (
             <PermissionsLayout>{children}</PermissionsLayout>

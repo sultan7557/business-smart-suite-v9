@@ -110,7 +110,13 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json(register)
+    return NextResponse.json(register, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("[REGISTERS_POST]", error)
     return new NextResponse("Internal error", { status: 500 })

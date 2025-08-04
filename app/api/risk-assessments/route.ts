@@ -37,7 +37,13 @@ export const GET = withAuth(async (request: NextRequest) => {
       ],
     })
 
-    return NextResponse.json(riskAssessments)
+    return NextResponse.json(riskAssessments, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error fetching risk assessments:", error)
     return NextResponse.json({ error: "Failed to fetch risk assessments" }, { status: 500 })
@@ -97,7 +103,13 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json(riskAssessment)
+    return NextResponse.json(riskAssessment, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("[RISK_ASSESSMENTS_POST]", error)
     return new NextResponse("Internal error", { status: 500 })
@@ -159,7 +171,13 @@ export const PUT = withAuth(async (request: NextRequest) => {
     })
 
     return NextResponse.json({
-      message: `Successfully ${action}d ${updatedRiskAssessments.count} risk assessment(s)`,
+      message: `Successfully ${action}d ${updatedRiskAssessments.count} risk assessment(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })`,
       count: updatedRiskAssessments.count,
     })
   } catch (error) {
@@ -188,7 +206,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       })
 
       return NextResponse.json({
-        message: `Successfully deleted ${deletedRiskAssessments.count} risk assessment(s) permanently`,
+        message: `Successfully deleted ${deletedRiskAssessments.count} risk assessment(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      }) permanently`,
         count: deletedRiskAssessments.count,
       })
     } else {
@@ -205,7 +229,13 @@ export const DELETE = withAuth(async (request: NextRequest) => {
       })
 
       return NextResponse.json({
-        message: `Successfully archived ${archivedRiskAssessments.count} risk assessment(s)`,
+        message: `Successfully archived ${archivedRiskAssessments.count} risk assessment(s, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })`,
         count: archivedRiskAssessments.count,
       })
     }

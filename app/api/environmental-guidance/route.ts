@@ -91,7 +91,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json(environmentalGuidance)
+    return NextResponse.json(environmentalGuidance, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        },
+      })
   } catch (error) {
     console.error("Error creating Environmental Guidance:", error)
     return NextResponse.json({ error: "Failed to create Environmental Guidance" }, { status: 500 })
