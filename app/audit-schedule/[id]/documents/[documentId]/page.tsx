@@ -14,7 +14,7 @@ interface DocumentPageProps {
 }
 
 export default async function DocumentPage({ params }: DocumentPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "audit-schedule")
   
   // Await params before accessing its properties
   const { id, documentId } = await params;

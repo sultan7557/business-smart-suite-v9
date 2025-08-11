@@ -17,8 +17,8 @@ async function COSHHPage({
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>
 }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "coshh");
+  const canDelete = await hasPermission("delete", "coshh");
   
   // Await searchParams before using its properties
   const resolvedSearchParams = await searchParams || {};

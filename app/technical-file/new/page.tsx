@@ -21,7 +21,7 @@ export default function NewTechnicalFilePageWrapper() {
 }
 
 async function NewTechnicalFilePage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "technical-files")
   if (!canEdit) {
     notFound()
   }

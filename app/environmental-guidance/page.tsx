@@ -17,8 +17,8 @@ async function EnvironmentalGuidancePage({
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>
 }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "environmental-guidance");
+  const canDelete = await hasPermission("delete", "environmental-guidance");
   
   // Await searchParams before using its properties
   const resolvedSearchParams = await searchParams || {};

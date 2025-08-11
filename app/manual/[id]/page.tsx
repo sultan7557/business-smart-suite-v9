@@ -19,7 +19,7 @@ interface ManualPageProps {
 export default async function ManualPage({ params }: ManualPageProps) {
   const resolvedParams = await params;
   const manualId = resolvedParams.id
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "manuals")
 
   // Fetch manual with related data
   const manual = await prisma.manual.findUnique({

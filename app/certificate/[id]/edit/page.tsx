@@ -16,7 +16,7 @@ export default async function EditCertificatePage({ params }: EditPageProps) {
   const resolvedParams = await params;
   const certificateId = resolvedParams.id;
   
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "certificates")
 
   if (!canEdit) {
     redirect("/certificate")

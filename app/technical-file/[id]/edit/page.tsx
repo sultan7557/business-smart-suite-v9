@@ -18,7 +18,7 @@ export default async function EditTechnicalFilePage({ params }: EditPageProps) {
   const resolvedParams = await params
   const technicalFileId = resolvedParams.id
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "technical-files")
 
   if (!canEdit) {
     redirect("/technical-file")

@@ -17,8 +17,8 @@ interface ViewPageProps {
 export default async function ViewHseGuidancePage({ params }: ViewPageProps) {
   const resolvedParams = await params
   const hseGuidanceId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "hse-guidance")
+  const canDelete = await hasPermission("delete", "hse-guidance")
 
   const hseGuidance = await prisma.hseGuidance.findUnique({
     where: { id: hseGuidanceId },

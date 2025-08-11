@@ -17,8 +17,8 @@ async function JobDescriptionsPage({
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>
 }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "job-descriptions");
+  const canDelete = await hasPermission("delete", "job-descriptions");
   
   // Await searchParams before using its properties
   const resolvedSearchParams = await searchParams || {};

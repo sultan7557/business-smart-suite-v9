@@ -17,7 +17,7 @@ export default function NewAuditPageWrapper() {
 }
 
 async function NewAuditPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "audit-schedule")
   
   if (!canEdit) {
     redirect("/audit-schedule")

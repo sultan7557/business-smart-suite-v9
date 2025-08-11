@@ -39,8 +39,8 @@ export async function generateMetadata({ params }: WorkInstructionPageProps) {
 export default async function WorkInstructionPage({ params }: WorkInstructionPageProps) {
   const resolvedParams = await params
   const workInstructionId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "work-instructions")
+  const canDelete = await hasPermission("delete", "work-instructions")
 
   const workInstruction = await prisma.workInstruction.findUnique({
     where: { id: workInstructionId },

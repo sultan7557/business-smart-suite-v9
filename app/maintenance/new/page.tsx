@@ -17,7 +17,7 @@ export default function NewMaintenancePageWrapper() {
 }
 
 async function NewMaintenancePage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "maintenance")
 
   if (!canEdit) {
     redirect("/maintenance")

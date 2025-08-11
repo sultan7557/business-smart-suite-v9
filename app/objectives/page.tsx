@@ -14,8 +14,8 @@ export default function ObjectivesPageWrapper(props: any) {
 }
 
 async function ObjectivesPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const canEdit = await hasPermission("write") 
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "objectives") 
+  const canDelete = await hasPermission("delete", "objectives")
   
   // Await searchParams to resolve the Promise
   const sp = await searchParams;

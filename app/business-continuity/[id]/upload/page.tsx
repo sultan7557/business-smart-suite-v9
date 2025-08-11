@@ -12,7 +12,7 @@ interface UploadPageProps {
 }
 
 export default async function BusinessContinuityUploadPage({ params }: UploadPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "business-continuity")
   if (!canEdit) {
     notFound()
   }

@@ -14,7 +14,7 @@ interface EditAuditPageProps {
 }
 
 export default async function EditAuditPage({ params }: EditAuditPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "audit-schedule")
   
   if (!canEdit) {
     redirect("/audit-schedule")

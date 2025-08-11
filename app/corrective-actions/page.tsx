@@ -17,8 +17,8 @@ async function CorrectiveActionsPage({
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>
 }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "corrective-actions");
+  const canDelete = await hasPermission("delete", "corrective-actions");
   
   // Await searchParams before using its properties
   const resolvedSearchParams = await searchParams || {};

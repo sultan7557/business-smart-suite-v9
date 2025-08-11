@@ -44,8 +44,8 @@ export async function generateMetadata({ params }: RegisterPageProps) {
 export default async function RegisterPage({ params }: RegisterPageProps) {
   const resolvedParams = await params
   const registerId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "registers")
+  const canDelete = await hasPermission("delete", "registers")
 
   const register = await prisma.register.findUnique({
     where: { id: registerId },

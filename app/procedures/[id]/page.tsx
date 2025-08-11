@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: ProcedurePageProps) {
 export default async function ProcedurePage({ params }: ProcedurePageProps) {
   const resolvedParams = await params;
   const procedureId = resolvedParams.id;
-  const canEdit = await hasPermission("write");
+  const canEdit = await hasPermission("write", "procedures");
 
   // Fetch procedure with related data
   const procedure = await prisma.procedure.findUnique({

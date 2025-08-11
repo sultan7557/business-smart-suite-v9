@@ -16,7 +16,7 @@ export default async function EditProcedurePage({ params }: EditPageProps) {
   const resolvedParams = await params;
   const procedureId = resolvedParams.id;
   
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "procedures")
 
   if (!canEdit) {
     redirect("/procedures")

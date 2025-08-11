@@ -12,7 +12,7 @@ interface UploadPageProps {
 }
 
 export default async function TechnicalFileUploadPage({ params }: UploadPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "technical-files")
   if (!canEdit) {
     notFound()
   }

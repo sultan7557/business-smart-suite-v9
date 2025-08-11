@@ -21,7 +21,7 @@ async function main() {
       password: adminPassword,
       name: "Admin User",
       email: "admin@example.com",
-      status: "ACTIVE",
+      role: "admin",
     },
   })
 
@@ -33,7 +33,7 @@ async function main() {
       password: userPassword,
       name: "Regular User",
       email: "user@example.com",
-      status: "ACTIVE",
+      role: "user",
     },
   })
 
@@ -45,7 +45,7 @@ async function main() {
       password: managerPassword,
       name: "Manager User",
       email: "manager@example.com",
-      status: "ACTIVE",
+      role: "manager",
     },
   })
 
@@ -1820,7 +1820,7 @@ console.log("Creating organizational context entries...")
 
   // Get admin user
   const adminUser = await prisma.user.findFirst({
-    where: { username: "admin" },
+    where: { role: "admin" },
   });
 
   if (!adminUser) {

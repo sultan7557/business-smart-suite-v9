@@ -12,7 +12,7 @@ interface UploadPageProps {
 }
 
 export default async function RiskAssessmentUploadPage({ params }: UploadPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "risk-assessments")
   if (!canEdit) {
     notFound()
   }

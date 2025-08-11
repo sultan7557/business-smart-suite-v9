@@ -19,7 +19,7 @@ export default function NewRiskAssessmentPageWrapper() {
 }
 
 async function NewRiskAssessmentPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "risk-assessments")
   if (!canEdit) {
     notFound()
   }

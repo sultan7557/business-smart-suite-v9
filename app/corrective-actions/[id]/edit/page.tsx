@@ -16,7 +16,7 @@ export default async function EditCorrectiveActionPage({ params }: EditPageProps
   const resolvedParams = await params;
   const correctiveActionId = resolvedParams.id;
   
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "corrective-actions")
 
   if (!canEdit) {
     redirect("/corrective-actions")

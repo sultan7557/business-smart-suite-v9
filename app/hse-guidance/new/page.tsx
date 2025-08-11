@@ -19,7 +19,7 @@ export default function NewHSEGuidancePageWrapper() {
 }
 
 async function NewHSEGuidancePage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "hse-guidance")
   if (!canEdit) {
     notFound()
   }

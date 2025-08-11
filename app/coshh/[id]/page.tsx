@@ -39,8 +39,8 @@ export async function generateMetadata({ params }: COSHHPageProps) {
 export default async function COSHHPage({ params }: COSHHPageProps) {
   const resolvedParams = await params
   const coshhId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "coshh")
+  const canDelete = await hasPermission("delete", "coshh")
 
   const coshh = await prisma.COSHH.findUnique({
     where: { id: coshhId },

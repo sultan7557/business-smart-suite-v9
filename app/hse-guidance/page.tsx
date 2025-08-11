@@ -17,8 +17,8 @@ async function HSEGuidancePage({
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>
 }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "hse-guidance");
+  const canDelete = await hasPermission("delete", "hse-guidance");
   
   const resolvedSearchParams = await searchParams || {};
   const showArchived = resolvedSearchParams.showArchived === "true";

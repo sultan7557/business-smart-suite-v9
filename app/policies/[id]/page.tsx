@@ -18,7 +18,7 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
   // Await params before using its properties
   const resolvedParams = await params;
   const policyId = resolvedParams.id;
-  const canEdit = await hasPermission("write");
+  const canEdit = await hasPermission("write", "policies");
 
   // Fetch policy with related data
   const policy = await prisma.policy.findUnique({

@@ -23,8 +23,8 @@ export default async function LegalRegisterDetailPage({ params }: LegalRegisterD
   const resolvedParams = await params;
   const id = resolvedParams.id;
   
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "legal-register")
+  const canDelete = await hasPermission("delete", "legal-register")
   const user = await getUser()
 
   if (!user) {

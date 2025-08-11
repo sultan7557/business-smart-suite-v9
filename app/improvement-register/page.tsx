@@ -13,8 +13,8 @@ export default function ImprovementRegisterPageWrapper() {
 }
 
 async function ImprovementRegisterPage() {
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "improvement-register")
+  const canDelete = await hasPermission("delete", "improvement-register")
 
   // Fetch all improvement register items
   const allImprovements = await prisma.improvementRegister.findMany({

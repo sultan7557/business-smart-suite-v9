@@ -38,8 +38,8 @@ export async function generateMetadata({ params }: EnvironmentalGuidancePageProp
 export default async function EnvironmentalGuidancePage({ params }: EnvironmentalGuidancePageProps) {
   const resolvedParams = await params
   const environmentalGuidanceId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "environmental-guidance")
+  const canDelete = await hasPermission("delete", "environmental-guidance")
 
   const environmentalGuidance = await prisma.environmentalGuidance.findUnique({
     where: { id: environmentalGuidanceId },

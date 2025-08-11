@@ -13,8 +13,8 @@ export default function ManualPageWrapper(props: any) {
 }
 
 async function ManualPage(props: any) {
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "manuals")
+  const canDelete = await hasPermission("delete", "manuals")
 
   // Fetch active manual categories with their manuals
   const categories = await prisma.manualCategory.findMany({

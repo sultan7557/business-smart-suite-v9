@@ -18,7 +18,7 @@ export default async function EditEnvironmentalGuidancePage({ params }: EditPage
   const resolvedParams = await params
   const environmentalGuidanceId = resolvedParams.id
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "environmental-guidance")
 
   if (!canEdit) {
     redirect("/environmental-guidance")

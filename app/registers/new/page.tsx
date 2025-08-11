@@ -19,7 +19,7 @@ export default function NewRegisterPageWrapper() {
 }
 
 async function NewRegisterPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "registers")
   if (!canEdit) {
     notFound()
   }

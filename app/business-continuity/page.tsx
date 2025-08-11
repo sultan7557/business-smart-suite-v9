@@ -17,8 +17,8 @@ async function BusinessContinuityPage({
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>
 }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "business-continuity");
+  const canDelete = await hasPermission("delete", "business-continuity");
   
   // Await searchParams before using its properties
   const resolvedSearchParams = await searchParams || {};

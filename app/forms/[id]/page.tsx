@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: FormPageProps) {
 export default async function FormPage({ params }: FormPageProps) {
   const resolvedParams = await params;
   const formId = resolvedParams.id;
-  const canEdit = await hasPermission("write");
+  const canEdit = await hasPermission("write", "forms");
 
   // Fetch form with related data
   const form = await prisma.form.findUnique({

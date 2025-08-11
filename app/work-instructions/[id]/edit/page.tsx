@@ -16,7 +16,7 @@ export default async function EditWorkInstructionPage({ params }: EditPageProps)
   const resolvedParams = await params
   const workInstructionId = resolvedParams.id
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "work-instructions")
 
   if (!canEdit) {
     redirect("/work-instructions")

@@ -5,8 +5,8 @@ import { hasPermission } from "@/lib/auth"
 import InterestedPartiesClient from "./interested-parties-client"
 
 export default async function InterestedPartiesPage() {
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "interested-parties")
+  const canDelete = await hasPermission("delete", "interested-parties")
   
   // Fetch both archived and non-archived interested parties
   const interestedParties = await prisma.interestedParty.findMany({

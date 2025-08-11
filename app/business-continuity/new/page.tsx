@@ -19,7 +19,7 @@ export default function NewBusinessContinuityPageWrapper() {
 }
 
 async function NewBusinessContinuityPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "business-continuity")
   if (!canEdit) {
     notFound()
   }

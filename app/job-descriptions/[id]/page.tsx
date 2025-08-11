@@ -39,8 +39,8 @@ export async function generateMetadata({ params }: JobDescriptionPageProps) {
 export default async function JobDescriptionPage({ params }: JobDescriptionPageProps) {
   const resolvedParams = await params
   const jobDescriptionId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "job-descriptions")
+  const canDelete = await hasPermission("delete", "job-descriptions")
 
   const jobDescription = await prisma.jobDescription.findUnique({
     where: { id: jobDescriptionId },

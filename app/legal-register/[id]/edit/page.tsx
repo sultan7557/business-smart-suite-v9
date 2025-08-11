@@ -16,7 +16,7 @@ export default async function EditLegalRegisterPage({ params }: EditLegalRegiste
   // Extract id from params correctly (no await needed)
   const { id } = await params;
   
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "legal-register")
 
   if (!canEdit) {
     redirect("/legal-register")

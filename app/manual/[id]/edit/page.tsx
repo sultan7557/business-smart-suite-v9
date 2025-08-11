@@ -18,7 +18,7 @@ export default async function EditManualPage({ params }: EditPageProps) {
   const resolvedParams = await params;
   const manualId = resolvedParams.id;
   
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "manuals")
 
   if (!canEdit) {
     redirect("/manual")

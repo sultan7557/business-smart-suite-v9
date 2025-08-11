@@ -12,7 +12,7 @@ interface UploadPageProps {
 }
 
 export default async function RegisterUploadPage({ params }: UploadPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "registers")
   if (!canEdit) {
     notFound()
   }

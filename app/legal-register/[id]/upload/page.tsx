@@ -13,7 +13,7 @@ interface UploadDocumentPageProps {
 }
 
 export default async function UploadDocumentPage({ params }: UploadDocumentPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "legal-register")
 
   if (!canEdit) {
     redirect(`/legal-register/${params.id}`)

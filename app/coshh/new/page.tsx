@@ -21,7 +21,7 @@ export default function NewCOSHHPageWrapper() {
 }
 
 async function NewCOSHHPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "coshh")
   if (!canEdit) {
     notFound()
   }

@@ -17,7 +17,7 @@ export default function AuditSchedulePageWrapper() {
 }
 
 async function AuditSchedulePage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "audit-schedule")
   
   // Initialize empty arrays for audits
   let notStartedAudits = [];

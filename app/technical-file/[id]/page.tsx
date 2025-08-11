@@ -38,8 +38,8 @@ export async function generateMetadata({ params }: TechnicalFilePageProps) {
 export default async function TechnicalFilePage({ params }: TechnicalFilePageProps) {
   const resolvedParams = await params
   const technicalFileId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "technical-files")
+  const canDelete = await hasPermission("delete", "technical-files")
 
   const technicalFile = await prisma.technicalFile.findUnique({
     where: { id: technicalFileId },

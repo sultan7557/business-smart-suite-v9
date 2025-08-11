@@ -359,27 +359,34 @@ export async function getUser() {
     });
   });
 
-  // Determine primary role from permissions
-  let primaryRole = 'user';
-  if (user.permissions && user.permissions.length > 0) {
-    // Find admin role first, then any other role
-    const adminPermission = user.permissions.find(p => p.role.name === 'Admin');
-    if (adminPermission) {
-      primaryRole = 'admin';
-    } else {
-      primaryRole = user.permissions[0].role.name;
-    }
-  }
-
   return {
     id: user.id,
     username: user.username,
     name: user.name,
     email: user.email,
-    role: primaryRole,
+    role: determineUserRole(user.permissions, user.groups),
     status: user.status,
     permissions: Array.from(effectivePermissions),
   }
+}
+
+// Helper function to determine user role from permissions
+function determineUserRole(permissions: any[], groups: any[]): string {
+  // Check if user has admin permissions
+  const hasAdminPermission = permissions.some((p: any) => p.role.name === 'Admin') ||
+    groups.some((ug: any) => ug.group.groupPermissions.some((gp: any) => gp.role.name === 'Admin'));
+  
+  if (hasAdminPermission) {
+    return 'admin';
+  }
+  
+  // Check for other roles
+  const roles = new Set<string>();
+  permissions.forEach((p: any) => roles.add(p.role.name));
+  groups.forEach((ug: any) => ug.group.groupPermissions.forEach((gp: any) => roles.add(gp.role.name)));
+  
+  // Return the first role found, or 'user' as default
+  return Array.from(roles)[0] || 'user';
 }
 
 export async function hasPermission(requiredPermission: string, systemId?: string) {
@@ -394,7 +401,18 @@ export async function hasPermission(requiredPermission: string, systemId?: strin
     return true;
   }
 
-  // Check if the user has the required permission in their permissions array
+  // For generic permissions like "write", "delete", "read", check if user has access to the system
+  if (["write", "delete", "read", "edit", "manage"].includes(requiredPermission)) {
+    // If systemId is provided, check if user has access to that specific system
+    if (systemId) {
+      return user.permissions.includes(systemId);
+    }
+    
+    // If no systemId, check if user has any system access (for generic operations)
+    return user.permissions.length > 0;
+  }
+
+  // For system-specific permissions, check exact match
   return user.permissions.includes(requiredPermission);
 }
 
@@ -407,21 +425,19 @@ export function withAuth(
     const token = req.cookies.get("auth-token")?.value
 
     if (!token) {
-      console.log("withAuth: No token found in request cookies. Returning 401.");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
     const payload = await verifyAuth(token)
     if (!payload) {
-      console.log("withAuth: Invalid token payload. Returning 401.");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
     if (requiredPermission) {
-      // Pass systemId if available from context/request path
+      // For generic permissions like "write", "delete", etc., check if user has any system access
+      // since we don't have a specific systemId in the API context
       const hasRequiredPermission = await hasPermission(requiredPermission)
       if (!hasRequiredPermission) {
-        console.log(`withAuth: User lacks required permission: ${requiredPermission}. Returning 403.`);
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
       }
     }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, ChevronLeft, ChevronRight, FileText } from "lucide-react"
+import { getDocumentUrl } from "@/lib/utils"
 
 interface DocumentPreviewProps {
   documentUrl: string
@@ -16,6 +17,9 @@ export default function DocumentPreview({ documentUrl, documentType, title }: Do
   const [totalPages, setTotalPages] = useState(3) // Default to 3 pages
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Clean the document URL to avoid double slashes
+  const cleanDocumentUrl = getDocumentUrl(documentUrl)
 
   useEffect(() => {
     // Reset state when document changes
@@ -97,7 +101,7 @@ export default function DocumentPreview({ documentUrl, documentType, title }: Do
       case "pdf":
         return (
           <iframe
-            src={documentUrl}
+            src={cleanDocumentUrl}
             className="w-full h-[600px] border-0"
             title={title}
             onError={(e) => {
@@ -132,7 +136,7 @@ export default function DocumentPreview({ documentUrl, documentType, title }: Do
               <p className="text-lg font-medium text-gray-600">Word Document Preview Not Available</p>
               <p className="text-sm text-gray-500 mb-6">Please download the document to view it</p>
               <Button asChild>
-                <a href={documentUrl} download target="_blank" rel="noopener noreferrer">
+                <a href={cleanDocumentUrl} download target="_blank" rel="noopener noreferrer">
                   <Download className="h-4 w-4 mr-2" /> Download Document
                 </a>
               </Button>
@@ -143,7 +147,7 @@ export default function DocumentPreview({ documentUrl, documentType, title }: Do
         return (
           <div className="w-full h-[600px] flex items-center justify-center bg-gray-100">
             <img
-              src={documentUrl || "/placeholder.svg"}
+              src={cleanDocumentUrl || "/placeholder.svg"}
               alt={title}
               className="max-w-full max-h-full object-contain"
               onError={(e) => {
@@ -160,7 +164,7 @@ export default function DocumentPreview({ documentUrl, documentType, title }: Do
               <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <p>Preview not available for this file type.</p>
               <Button variant="outline" className="mt-4" asChild>
-                <a href={documentUrl} download target="_blank" rel="noopener noreferrer">
+                <a href={cleanDocumentUrl} download target="_blank" rel="noopener noreferrer">
                   <Download className="h-4 w-4 mr-2" /> Download to view
                 </a>
               </Button>
@@ -194,7 +198,7 @@ export default function DocumentPreview({ documentUrl, documentType, title }: Do
           </div>
 
           <Button variant="outline" className="flex items-center" asChild>
-            <a href={documentUrl} download target="_blank" rel="noopener noreferrer">
+            <a href={cleanDocumentUrl} download target="_blank" rel="noopener noreferrer">
               <Download className="h-4 w-4 mr-2" /> Download
             </a>
           </Button>

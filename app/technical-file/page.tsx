@@ -17,8 +17,8 @@ async function TechnicalFilePage({
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>
 }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "technical-files");
+  const canDelete = await hasPermission("delete", "technical-files");
   
   // Await searchParams before using its properties
   const resolvedSearchParams = await searchParams || {};

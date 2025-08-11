@@ -12,7 +12,7 @@ interface UploadPageProps {
 }
 
 export default async function JobDescriptionUploadPage({ params }: UploadPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "job-descriptions")
   if (!canEdit) {
     notFound()
   }

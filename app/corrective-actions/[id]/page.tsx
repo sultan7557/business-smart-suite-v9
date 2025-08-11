@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: CorrectiveActionPageProps) {
 export default async function CorrectiveActionPage({ params }: CorrectiveActionPageProps) {
   const resolvedParams = await params;
   const correctiveActionId = resolvedParams.id;
-  const canEdit = await hasPermission("write");
+  const canEdit = await hasPermission("write", "corrective-actions");
 
   // Fetch corrective action with related data
   const correctiveAction = await prisma.correctiveAction.findUnique({

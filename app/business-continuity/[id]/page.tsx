@@ -40,8 +40,8 @@ export async function generateMetadata({ params }: BusinessContinuityPageProps) 
 export default async function BusinessContinuityPage({ params }: BusinessContinuityPageProps) {
   const resolvedParams = await params
   const businessContinuityId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "business-continuity")
+  const canDelete = await hasPermission("delete", "business-continuity")
 
   const businessContinuity = await prisma.businessContinuity.findUnique({
     where: { id: businessContinuityId },

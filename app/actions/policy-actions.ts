@@ -335,6 +335,11 @@ export async function addPolicy(categoryId: string, title: string) {
 // Add new category
 export async function addCategory(title: string) {
   try {
+    const user = await getUser()
+    if (!user) {
+      throw new Error("Unauthorized")
+    }
+
     // Get the highest order
     const highestOrderCategory = await prisma.policyCategory.findFirst({
       orderBy: { order: "desc" },
@@ -394,6 +399,11 @@ export async function editPolicy(
 // Edit category
 export async function editCategory(id: string, title: string) {
   try {
+    const user = await getUser()
+    if (!user) {
+      throw new Error("Unauthorized")
+    }
+
     await prisma.policyCategory.update({
       where: { id },
       data: { title },

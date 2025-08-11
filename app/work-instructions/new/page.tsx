@@ -19,7 +19,7 @@ export default function NewWorkInstructionPageWrapper() {
 }
 
 async function NewWorkInstructionPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "work-instructions")
   if (!canEdit) {
     notFound()
   }

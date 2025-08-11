@@ -5,8 +5,8 @@ import prisma from "@/lib/prisma"
 import StatementOfApplicabilityClient from "./statement-of-applicability-client"
 
 export default async function StatementOfApplicabilityPage() {
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "statement-of-applicability")
+  const canDelete = await hasPermission("delete", "statement-of-applicability")
 
   // Fetch controls
   const controls = await prisma.statementOfApplicabilityControl.findMany({

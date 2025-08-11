@@ -21,7 +21,7 @@ export default function NewEnvironmentalGuidancePageWrapper() {
 }
 
 async function NewEnvironmentalGuidancePage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "environmental-guidance")
   if (!canEdit) {
     notFound()
   }

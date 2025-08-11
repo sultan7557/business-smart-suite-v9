@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: CertificatePageProps) {
 export default async function CertificatePage({ params }: CertificatePageProps) {
   const resolvedParams = await params;
   const certificateId = resolvedParams.id;
-  const canEdit = await hasPermission("write");
+  const canEdit = await hasPermission("write", "certificates");
 
   // Fetch certificate with related data
   const certificate = await prisma.certificate.findUnique({

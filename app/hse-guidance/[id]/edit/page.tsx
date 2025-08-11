@@ -30,7 +30,7 @@ export default async function EditHseGuidancePage({ params }: EditPageProps) {
     notFound()
   }
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "hse-guidance")
   if (!canEdit) {
     redirect("/hse-guidance")
   }

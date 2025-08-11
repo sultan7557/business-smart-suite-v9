@@ -39,8 +39,8 @@ export async function generateMetadata({ params }: ManagementReviewPageProps) {
 export default async function ManagementReviewPage({ params }: ManagementReviewPageProps) {
   const resolvedParams = await params
   const managementReviewId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "management-review")
+  const canDelete = await hasPermission("delete", "management-review")
 
   const managementReview = await prisma.managementReview.findUnique({
     where: { id: managementReviewId },

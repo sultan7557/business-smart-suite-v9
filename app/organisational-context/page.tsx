@@ -13,8 +13,8 @@ export default function OrganizationalContextPageWrapper(props: any) {
 }
 
 async function OrganizationalContextPage({ searchParams }: { searchParams: Promise<{ showArchived?: string }> }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "organizational-context");
+  const canDelete = await hasPermission("delete", "organizational-context");
 
   // Await searchParams and ensure showArchived is a boolean
   const sp = await searchParams;

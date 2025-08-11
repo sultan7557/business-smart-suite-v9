@@ -18,7 +18,7 @@ export default async function EditCOSHHPage({ params }: EditPageProps) {
   const resolvedParams = await params
   const coshhId = resolvedParams.id
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "coshh")
 
   if (!canEdit) {
     redirect("/coshh")

@@ -16,7 +16,7 @@ export default function NewObjectivePageWrapper() {
 }
 
 async function NewObjectivePage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "objectives")
 
   if (!canEdit) {
     redirect("/objectives")

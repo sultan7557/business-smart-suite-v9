@@ -30,7 +30,7 @@ export default async function EditRiskAssessmentPage({ params }: EditPageProps) 
     notFound()
   }
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "risk-assessments")
   if (!canEdit) {
     redirect("/risk-assessments")
   }

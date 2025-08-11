@@ -16,7 +16,7 @@ export default function NewLegalRegisterPageWrapper() {
 }
 
 async function NewLegalRegisterPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "legal-register")
 
   if (!canEdit) {
     redirect("/legal-register")

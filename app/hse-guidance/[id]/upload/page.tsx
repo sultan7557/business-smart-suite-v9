@@ -12,7 +12,7 @@ interface UploadPageProps {
 }
 
 export default async function HseGuidanceUploadPage({ params }: UploadPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "hse-guidance")
   if (!canEdit) {
     notFound()
   }

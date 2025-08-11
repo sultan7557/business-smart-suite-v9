@@ -12,7 +12,7 @@ interface UploadPageProps {
 }
 
 export default async function EnvironmentalGuidanceUploadPage({ params }: UploadPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "environmental-guidance")
   if (!canEdit) {
     notFound()
   }

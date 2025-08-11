@@ -52,7 +52,7 @@ const nextConfig = {
       config.optimization.usedExports = true
       config.optimization.sideEffects = false
       
-      // Split chunks optimization
+      // Simplified split chunks to avoid floating-ui issues
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
@@ -60,12 +60,7 @@ const nextConfig = {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             chunks: 'all',
-          },
-          common: {
-            name: 'common',
-            minChunks: 2,
-            chunks: 'all',
-            enforce: true,
+            priority: 10,
           },
         },
       }
@@ -97,11 +92,24 @@ const nextConfig = {
           },
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
+          },
+        ],
+      },
+      {
+        source: '/api/documents/download/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=600',
           },
         ],
       },

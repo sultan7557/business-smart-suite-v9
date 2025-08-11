@@ -16,7 +16,7 @@ export default function NewOrganizationalContextPageWrapper() {
 }
 
 async function NewOrganizationalContextPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "organizational-context")
 
   if (!canEdit) {
     redirect("/organisational-context")

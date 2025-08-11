@@ -19,8 +19,8 @@ interface ImprovementRegisterDetailPageProps {
 }
 
 export default async function ImprovementRegisterDetailPage({ params }: ImprovementRegisterDetailPageProps) {
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "improvement-register")
+  const canDelete = await hasPermission("delete", "improvement-register")
   const user = await getUser()
 
   // Await params before accessing its properties

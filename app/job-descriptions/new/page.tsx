@@ -19,7 +19,7 @@ export default function NewJobDescriptionPageWrapper() {
 }
 
 async function NewJobDescriptionPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "job-descriptions")
   if (!canEdit) {
     notFound()
   }

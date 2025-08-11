@@ -14,8 +14,8 @@ export default function MaintenancePageWrapper(props: any) {
 }
 
 async function MaintenancePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "maintenance")
+  const canDelete = await hasPermission("delete", "maintenance")
   
   // Await searchParams to resolve the Promise
   const sp = await searchParams;

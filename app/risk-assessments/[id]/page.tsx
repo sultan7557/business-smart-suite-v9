@@ -18,8 +18,8 @@ interface ViewPageProps {
 export default async function ViewRiskAssessmentPage({ params }: ViewPageProps) {
   const resolvedParams = await params
   const riskAssessmentId = resolvedParams.id
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
+  const canEdit = await hasPermission("write", "risk-assessments")
+  const canDelete = await hasPermission("delete", "risk-assessments")
 
   const riskAssessment = await prisma.riskAssessment.findUnique({
     where: { id: riskAssessmentId },

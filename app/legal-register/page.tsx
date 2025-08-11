@@ -13,9 +13,9 @@ export default function LegalRegisterPageWrapper(props: any) {
 }
 
 async function LegalRegisterPage(props: any) {
-  const canEdit = await hasPermission("write")
-  const canDelete = await hasPermission("delete")
-  const canApprove = await hasPermission("write")
+  const canEdit = await hasPermission("write", "legal-register")
+  const canDelete = await hasPermission("delete", "legal-register")
+  const canApprove = await hasPermission("write", "legal-register")
 
   // Fetch active legal register items
   const legalRegisters = await prisma.legalRegister.findMany({

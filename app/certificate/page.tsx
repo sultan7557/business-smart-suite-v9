@@ -17,8 +17,8 @@ async function CertificatePage({
 }: {
   searchParams: Promise<{ showArchived?: string; sort?: string }>
 }) {
-  const canEdit = await hasPermission("write");
-  const canDelete = await hasPermission("delete");
+  const canEdit = await hasPermission("write", "certificates");
+  const canDelete = await hasPermission("delete", "certificates");
   
   // Await searchParams before using its properties
   const resolvedSearchParams = await searchParams || {};

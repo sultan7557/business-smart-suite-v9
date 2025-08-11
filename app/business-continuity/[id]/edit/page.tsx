@@ -16,7 +16,7 @@ export default async function EditBusinessContinuityPage({ params }: EditPagePro
   const resolvedParams = await params
   const businessContinuityId = resolvedParams.id
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "business-continuity")
 
   if (!canEdit) {
     redirect("/business-continuity")

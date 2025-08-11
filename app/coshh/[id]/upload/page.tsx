@@ -12,7 +12,7 @@ interface UploadPageProps {
 }
 
 export default async function COSHHUploadPage({ params }: UploadPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "coshh")
   if (!canEdit) {
     notFound()
   }

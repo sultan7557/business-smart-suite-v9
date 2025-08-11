@@ -16,7 +16,7 @@ export default async function EditRegisterPage({ params }: EditPageProps) {
   const resolvedParams = await params
   const registerId = resolvedParams.id
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "registers")
 
   if (!canEdit) {
     redirect("/registers")

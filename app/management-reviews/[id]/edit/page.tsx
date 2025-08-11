@@ -16,7 +16,7 @@ export default async function EditManagementReviewPage({ params }: EditPageProps
   const resolvedParams = await params
   const managementReviewId = resolvedParams.id
 
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "management-review")
 
   if (!canEdit) {
     redirect("/management-reviews")

@@ -341,6 +341,11 @@ export async function addManual(data: {
 // Add new category
 export async function addCategory(title: string) {
   try {
+    const user = await getUser()
+    if (!user) {
+      throw new Error("Unauthorized")
+    }
+
     // Get the highest order
     const highestOrderCategory = await prisma.manualCategory.findFirst({
       orderBy: { order: "desc" },
@@ -400,6 +405,11 @@ export async function editManual(
 // Edit category
 export async function editCategory(id: string, title: string) {
   try {
+    const user = await getUser()
+    if (!user) {
+      throw new Error("Unauthorized")
+    }
+
     await prisma.manualCategory.update({
       where: { id },
       data: { title },

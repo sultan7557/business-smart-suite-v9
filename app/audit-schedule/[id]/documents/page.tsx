@@ -13,7 +13,7 @@ interface AuditDocumentsPageProps {
 }
 
 export default async function AuditDocumentsPage({ params }: AuditDocumentsPageProps) {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "audit-schedule")
 
 
   // await params first

@@ -19,7 +19,7 @@ export default function NewManagementReviewPageWrapper() {
 }
 
 async function NewManagementReviewPage() {
-  const canEdit = await hasPermission("write")
+  const canEdit = await hasPermission("write", "management-review")
   if (!canEdit) {
     notFound()
   }
