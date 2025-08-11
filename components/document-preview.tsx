@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, ChevronLeft, ChevronRight, FileText } from "lucide-react"
-import { getDocumentUrl } from "@/lib/utils"
 
 interface DocumentPreviewProps {
   documentUrl: string
@@ -18,8 +17,23 @@ export default function DocumentPreview({ documentUrl, documentType, title }: Do
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Clean the document URL to avoid double slashes
-  const cleanDocumentUrl = getDocumentUrl(documentUrl)
+  // Clean the document URL to avoid duplication and double slashes
+  const cleanDocumentUrl = useMemo(() => {
+    if (!documentUrl) return ""
+    
+    // If the URL already contains the full API path, return it as is
+    if (documentUrl.startsWith('/api/documents/download/')) {
+      return documentUrl
+    }
+    
+    // If the URL starts with /uploads/, construct the proper API path
+    if (documentUrl.startsWith('/uploads/')) {
+      return `/api/documents/download${documentUrl}`
+    }
+    
+    // If the URL doesn't start with /uploads/, assume it's just the filename
+    return `/api/documents/download/uploads/${documentUrl}`
+  }, [documentUrl])
 
   useEffect(() => {
     // Reset state when document changes

@@ -13,10 +13,18 @@ export function cn(...inputs: ClassValue[]) {
 export function getDocumentUrl(fileUrl: string): string {
   if (!fileUrl) return ""
   
-  // Remove leading slash if present to avoid double slashes
-  const cleanFileUrl = fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl
+  // If the URL already contains the full API path, return it as is
+  if (fileUrl.startsWith('/api/documents/download/')) {
+    return fileUrl
+  }
   
-  return `/api/documents/download/${cleanFileUrl}`
+  // If the URL starts with /uploads/, remove the leading slash to avoid double slashes
+  if (fileUrl.startsWith('/uploads/')) {
+    return `/api/documents/download${fileUrl}`
+  }
+  
+  // If the URL doesn't start with /uploads/, assume it's just the filename
+  return `/api/documents/download/uploads/${fileUrl}`
 }
 
 export function formatDate(dateString: string | Date | null | undefined) {
