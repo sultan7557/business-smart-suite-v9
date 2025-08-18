@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { format } from "date-fns"
 import { createSupplier, updateSupplier } from "../actions/supplier-actions"
 import { ArrowLeft } from 'lucide-react'
 import Link from "next/link"
 import DocumentUpload from "./document-upload"
 import { Loader } from '@/components/ui/loader'
+import { assignDocumentToUser, getUsersForAssignment } from "../actions/supplier-document-actions"
 
 interface SupplierFormProps {
   supplier?: {
@@ -39,6 +41,12 @@ interface SupplierFormProps {
     title: string
     uploadedAt: string
     expiryDate: string | null
+    assignedUserId?: string | null
+    assignedUser?: {
+      id: string
+      name: string
+      email: string
+    } | null
   }>
   isEdit?: boolean
 }
@@ -85,7 +93,38 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [docList, setDocList] = useState(documents)
   const [loadingDocs, setLoadingDocs] = useState(false)
+  const [users, setUsers] = useState<any[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
   
+  useEffect(() => {
+    // Fetch users for document assignment
+    const fetchUsers = async () => {
+      console.log('SupplierForm: fetchUsers started')
+      setLoadingUsers(true)
+      try {
+        console.log('SupplierForm: Calling getUsersForAssignment...')
+        const result = await getUsersForAssignment()
+        console.log('SupplierForm: getUsersForAssignment result:', result)
+        
+        if (result && result.success && 'data' in result) {
+          console.log('SupplierForm: Setting users:', result.data)
+          setUsers(result.data || [])
+        } else {
+          console.error('SupplierForm: Failed to fetch users:', result && 'error' in result ? result.error : 'No result')
+        }
+      } catch (error) {
+        console.error('SupplierForm: Error fetching users:', error)
+      } finally {
+        setLoadingUsers(false)
+      }
+    }
+    
+    if (isEdit) {
+      console.log('SupplierForm: isEdit is true, calling fetchUsers')
+      fetchUsers()
+    }
+  }, [isEdit])
+
   useEffect(() => {
     if (supplier) {
       setFormData({
@@ -113,17 +152,77 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
 
   const fetchDocuments = async () => {
     if (!supplier?.id) return
+    console.log('fetchDocuments: Starting fetch for supplier:', supplier.id)
     setLoadingDocs(true)
     try {
-      const res = await fetch(`/api/suppliers/documents?supplierId=${supplier.id}`)
+      // Add cache-busting to ensure fresh data
+      const res = await fetch(`/api/suppliers/documents?supplierId=${supplier.id}&t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       if (res.ok) {
         const data = await res.json()
+        console.log('fetchDocuments: Fetched documents:', data)
+        console.log('fetchDocuments: Current docList before update:', docList)
         setDocList(data || [])
+        console.log('fetchDocuments: Updated docList to:', data || [])
+      } else {
+        console.error('fetchDocuments: Response not ok:', res.status, res.statusText)
       }
     } catch (e) {
-      // ignore
+      console.error('Error fetching documents:', e)
     } finally {
       setLoadingDocs(false)
+    }
+  }
+
+  const handleDocumentAssignment = async (documentId: string, userId: string | null) => {
+    try {
+      console.log('handleDocumentAssignment: Starting assignment for document:', documentId, 'to user:', userId)
+      
+      // Optimistically update the UI first
+      const assignedUser = userId ? users.find(u => u.id === userId) : null
+      console.log('handleDocumentAssignment: Assigned user found:', assignedUser)
+      
+      setDocList(prev => {
+        const updated = prev.map(doc => 
+          doc.id === documentId 
+            ? { ...doc, assignedUserId: userId, assignedUser: assignedUser }
+            : doc
+        )
+        console.log('handleDocumentAssignment: Updated docList:', updated)
+        return updated
+      })
+
+      const result = await assignDocumentToUser(documentId, userId)
+      console.log('handleDocumentAssignment: Server response:', result)
+      
+      if (result.success) {
+        toast({
+          title: "Document assigned successfully",
+          description: userId ? "Document has been assigned to the selected user" : "Document assignment has been removed",
+        })
+      } else {
+        // Revert the optimistic update on failure
+        console.log('handleDocumentAssignment: Assignment failed, reverting optimistic update')
+        setDocList(prev => prev.map(doc => 
+          doc.id === documentId 
+            ? { ...doc, assignedUserId: doc.assignedUserId, assignedUser: doc.assignedUser }
+            : doc
+        ))
+        throw new Error(result.error || "Failed to assign document")
+      }
+    } catch (error) {
+      console.error("Error assigning document:", error)
+      toast({
+        title: "Error",
+        description: "Failed to assign document. Please try again.",
+        variant: "destructive",
+      })
     }
   }
   
@@ -387,17 +486,44 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                     <p>Drag documents onto the grey box below to upload</p>
                     <p>Or select the files you wish to upload</p>
                   </div>
-                  <DocumentUpload supplierId={supplier.id} onUploadComplete={fetchDocuments} />
+                  <DocumentUpload 
+                    supplierId={supplier.id} 
+                    onUploadComplete={(newDocument) => {
+                      // Optimistically add the new document to the list
+                      if (newDocument) {
+                        console.log('DocumentUpload: New document received:', newDocument)
+                        // Ensure the new document has all required fields
+                        const formattedDocument = {
+                          ...newDocument,
+                          // Add any missing fields that the UI expects
+                          assignedUserId: newDocument.assignedUserId || null,
+                          assignedUser: newDocument.assignedUser || null
+                        }
+                        setDocList(prev => [formattedDocument, ...prev])
+                        
+                        // As a backup, also fetch fresh data after a short delay
+                        // This ensures data consistency even if optimistic update fails
+                        setTimeout(() => {
+                          fetchDocuments()
+                        }, 1000)
+                      } else {
+                        // Fallback to fetching fresh data
+                        console.log('DocumentUpload: No document data, fetching fresh data')
+                        fetchDocuments()
+                      }
+                    }} 
+                  />
                 </div>
               )}
               {loadingDocs ? (
                 <p className="text-gray-500">Loading documents...</p>
               ) : docList.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-4 gap-4 p-3 bg-gray-100 rounded-md font-medium text-sm">
+                  <div className="grid grid-cols-5 gap-4 p-3 bg-gray-100 rounded-md font-medium text-sm">
                     <div>Document</div>
                     <div>Uploaded</div>
                     <div>Expiry Date</div>
+                    <div>Assigned To</div>
                     <div>Actions</div>
                   </div>
                   {docList.map((doc) => {
@@ -407,10 +533,10 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                     const isExpiringSoon = expiryDate && expiryDate > today && expiryDate.getTime() - today.getTime() < 30 * 24 * 60 * 60 * 1000; // 30 days
                     
                     return (
-                      <div key={doc.id} className="grid grid-cols-4 gap-4 p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors items-center">
+                      <div key={doc.id} className="grid grid-cols-5 gap-4 p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors items-center">
                         <span className="text-blue-600 hover:underline">
-                        {doc.title}
-                      </span>
+                          {doc.title}
+                        </span>
                         <span className="text-sm text-gray-600">
                           {new Date(doc.uploadedAt).toLocaleDateString()}
                         </span>
@@ -425,22 +551,36 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                             'No expiry'
                           )}
                         </span>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/suppliers/${supplier?.id}/documents/${doc.id}`}>Preview</Link>
-                        </Button>
-                        <Button variant="ghost" size="sm" asChild>
-                          <a 
-                            href={`/api/suppliers/documents/${doc.id}/download`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-gray-600 hover:text-gray-900"
-                          >
-                            Download
-                          </a>
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          {loadingUsers ? (
+                            <span className="text-sm text-gray-500">Loading users...</span>
+                          ) : users.length === 0 ? (
+                            <span className="text-sm text-red-500">No users available</span>
+                          ) : (
+                            <DocumentAssignmentSelect 
+                              documentId={doc.id}
+                              currentAssignment={doc.assignedUserId}
+                              onAssignmentChange={handleDocumentAssignment}
+                              users={users}
+                            />
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/suppliers/${supplier?.id}/documents/${doc.id}`}>Preview</Link>
+                          </Button>
+                          <Button variant="ghost" size="sm" asChild>
+                            <a 
+                              href={`/api/suppliers/documents/${doc.id}/download`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-gray-600 hover:text-gray-900"
+                            >
+                              Download
+                            </a>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
                     );
                   })}
                 </div>
@@ -468,6 +608,78 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
           </Button>
         </div>
       </form>
+    </div>
+  )
+}
+
+// Document Assignment Select Component
+function DocumentAssignmentSelect({ 
+  documentId, 
+  currentAssignment, 
+  onAssignmentChange,
+  users
+}: { 
+  documentId: string
+  currentAssignment?: string | null
+  onAssignmentChange: (documentId: string, userId: string | null) => void
+  users: Array<{ id: string; name: string; email: string | null; username: string }>
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(currentAssignment || null)
+
+  // Update local state when currentAssignment changes (e.g., from parent component updates)
+  useEffect(() => {
+    console.log('DocumentAssignmentSelect: currentAssignment changed to:', currentAssignment)
+    setSelectedUserId(currentAssignment || null)
+  }, [currentAssignment])
+
+
+
+  const handleAssignmentChange = (userId: string | null) => {
+    setSelectedUserId(userId)
+    onAssignmentChange(documentId, userId)
+    setIsOpen(false)
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full text-left px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {selectedUserId ? (
+          <span className="text-gray-900">
+            {users.find((u: { id: string; name: string; email: string | null; username: string }) => u.id === selectedUserId)?.name || 'Unknown User'}
+          </span>
+        ) : (
+          <span className="text-gray-500">Unassigned</span>
+        )}
+      </button>
+      
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="py-1">
+            <button
+              type="button"
+              onClick={() => handleAssignmentChange(null)}
+              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Unassigned
+            </button>
+            {users.map((user: { id: string; name: string; email: string | null; username: string }) => (
+              <button
+                key={user.id}
+                type="button"
+                onClick={() => handleAssignmentChange(user.id)}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                {user.name} ({user.email || user.username})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

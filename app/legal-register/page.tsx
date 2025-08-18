@@ -1,23 +1,23 @@
 import { Suspense } from "react"
-import { Loader } from '@/components/ui/loader'
-import { hasPermission } from "@/lib/auth"
+import { notFound } from "next/navigation"
 import prisma from "@/lib/prisma"
+import { hasPermission } from "@/lib/auth"
 import LegalRegisterClient from "./legal-register-client"
+import { unstable_noStore as noStore } from 'next/cache'
 
-export default function LegalRegisterPageWrapper(props: any) {
-  return (
-    <Suspense fallback={<Loader overlay message="Loading legal register..." />}>
-      <LegalRegisterPage {...props} />
-    </Suspense>
-  )
-}
+export default async function LegalRegisterPage() {
+  // Disable caching for this page to ensure fresh data
+  noStore()
 
-async function LegalRegisterPage(props: any) {
   const canEdit = await hasPermission("write", "legal-register")
   const canDelete = await hasPermission("delete", "legal-register")
-  const canApprove = await hasPermission("write", "legal-register")
+  const canApprove = await hasPermission("approve", "legal-register")
 
-  // Fetch active legal register items
+  if (!canEdit && !canDelete && !canApprove) {
+    notFound()
+  }
+
+  // Fetch active legal register items with fresh data
   const legalRegisters = await prisma.legalRegister.findMany({
     where: {
       archived: false,
@@ -44,13 +44,25 @@ async function LegalRegisterPage(props: any) {
           reviewDate: "desc",
         },
       },
+      documents: {
+        include: {
+          uploadedBy: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          uploadedAt: "desc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
     },
   })
 
-  // Fetch unapproved legal register items
+  // Fetch unapproved legal register items with fresh data
   const unapprovedRegisters = await prisma.legalRegister.findMany({
     where: {
       archived: false,
@@ -64,13 +76,25 @@ async function LegalRegisterPage(props: any) {
           email: true,
         },
       },
+      documents: {
+        include: {
+          uploadedBy: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          uploadedAt: "desc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
     },
   })
 
-  // Fetch archived legal register items
+  // Fetch archived legal register items with fresh data
   const archivedRegisters = await prisma.legalRegister.findMany({
     where: {
       archived: true,
@@ -96,11 +120,39 @@ async function LegalRegisterPage(props: any) {
           reviewDate: "desc",
         },
       },
+      documents: {
+        include: {
+          uploadedBy: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          uploadedAt: "desc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
     },
   })
+
+  // Verify document data integrity and ensure fresh data
+  const verifyDocuments = (registers: any[]) => {
+    return registers.map(register => ({
+      ...register,
+      documents: register.documents || [],
+      // Ensure documents are properly formatted
+      _count: {
+        documents: register.documents?.length || 0
+      }
+    }))
+  }
+
+  const verifiedLegalRegisters = verifyDocuments(legalRegisters)
+  const verifiedUnapprovedRegisters = verifyDocuments(unapprovedRegisters)
+  const verifiedArchivedRegisters = verifyDocuments(archivedRegisters)
 
   // Fetch users for dropdown selections
   const users = await prisma.user.findMany({
@@ -120,9 +172,9 @@ async function LegalRegisterPage(props: any) {
   return (
     <div className="p-4">
       <LegalRegisterClient
-        legalRegisters={legalRegisters}
-        unapprovedRegisters={unapprovedRegisters}
-        archivedRegisters={archivedRegisters}
+        legalRegisters={verifiedLegalRegisters}
+        unapprovedRegisters={verifiedUnapprovedRegisters}
+        archivedRegisters={verifiedArchivedRegisters}
         users={users}
         canEdit={canEdit}
         canDelete={canDelete}

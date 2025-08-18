@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Pencil, Trash2, Archive, RotateCcw, FileText } from "lucide-react"
@@ -16,6 +17,7 @@ interface AuditListProps {
 }
 
 export default function AuditList({ audits, canEdit }: AuditListProps) {
+  const router = useRouter()
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isArchiving, setIsArchiving] = useState<string | null>(null)
 
@@ -73,7 +75,7 @@ export default function AuditList({ audits, canEdit }: AuditListProps) {
     }
     
     // If the planned start date is more than a month away, show green
-    return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+    return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-amber-300"
   }
 
   if (!audits) {
@@ -110,7 +112,17 @@ export default function AuditList({ audits, canEdit }: AuditListProps) {
         </thead>
         <tbody>
           {audits.map((audit) => (
-            <tr key={audit.id} className="border-b hover:bg-gray-50">
+            <tr 
+              key={audit.id} 
+              className={`border-b hover:bg-gray-50 cursor-pointer transition-colors ${audit.archived ? 'bg-gray-100' : ''}`}
+              onClick={(e) => {
+                // Don't navigate if clicking on action buttons
+                if ((e.target as HTMLElement).closest('button, a')) {
+                  return;
+                }
+                router.push(`/audit-schedule/${audit.id}/edit`);
+              }}
+            >
               <td className="py-2 px-4">{audit.number?.toString().padStart(3, '0')}</td>
               <td className="py-2 px-4">{audit.title}</td>
               <td className={`py-2 px-4 ${getPlannedStartColorClass(new Date(audit.plannedStartDate), audit.archived)}`}>
@@ -120,7 +132,7 @@ export default function AuditList({ audits, canEdit }: AuditListProps) {
               <td className="py-2 px-4">{audit.auditor?.name || audit.externalAuditor || "-"}</td>
               <td className="py-2 px-4">{audit.followUpDate ? formatDate(audit.followUpDate) : "-"}</td>
               <td className="py-2 px-4">{audit.dateCompleted ? formatDate(audit.dateCompleted) : "-"}</td>
-              <td className="py-2 px-4">
+              <td className="py-2 px-4" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-2">
                   {canEdit && !audit.archived && (
                     <>

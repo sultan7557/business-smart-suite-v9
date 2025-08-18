@@ -42,14 +42,33 @@ export default function LegalRegisterClient({
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [loadingAction, setLoadingAction] = useState<{ [id: string]: string | null }>({})
 
+  // Ensure documents are properly initialized
+  const ensureDocuments = (registers: any[]) => {
+    return registers.map(register => ({
+      ...register,
+      documents: Array.isArray(register.documents) ? register.documents : [],
+      // Add a computed property for document count
+      documentCount: Array.isArray(register.documents) ? register.documents.length : 0
+    }))
+  }
+
+  const safeLegalRegisters = ensureDocuments(legalRegisters)
+  const safeUnapprovedRegisters = ensureDocuments(unapprovedRegisters)
+  const safeArchivedRegisters = ensureDocuments(archivedRegisters)
+
+  // Function to manually refresh data
+  const handleManualRefresh = () => {
+    window.location.reload()
+  }
+
   // Get unique sections for filter
-  const sections = Array.from(new Set(legalRegisters.map((item) => item.section)))
+  const sections = Array.from(new Set(safeLegalRegisters.map((item) => item.section)))
 
   // Get unique compliance ratings for filter
-  const complianceRatings = Array.from(new Set(legalRegisters.map((item) => item.complianceRating)))
+  const complianceRatings = Array.from(new Set(safeLegalRegisters.map((item) => item.complianceRating)))
 
   // Filter legal registers based on selected filters
-  const filteredLegalRegisters = legalRegisters.filter((item) => {
+  const filteredLegalRegisters = safeLegalRegisters.filter((item) => {
     if (sectionFilter !== "all" && item.section !== sectionFilter) return false
     if (complianceFilter !== "all" && item.complianceRating !== complianceFilter) return false
     if (reviewedFilter === "reviewed" && !item.reviewed) return false
@@ -165,9 +184,22 @@ export default function LegalRegisterClient({
           <h1 className="text-2xl font-bold">Legal Register</h1>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handlePrint}>
+          <Button
+            variant="outline"
+            onClick={() => window.print()}
+            className="mr-2"
+          >
             <Printer className="h-4 w-4 mr-2" />
             Print
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={handleManualRefresh}
+            className="mr-2"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
           </Button>
 
           {canEdit && (
@@ -422,7 +454,7 @@ export default function LegalRegisterClient({
         <TabsList>
           <TabsTrigger value="active">Active Items</TabsTrigger>
           <TabsTrigger value="approval">
-            Items Requiring Approval {unapprovedRegisters.length > 0 && `(${unapprovedRegisters.length})`}
+            Items Requiring Approval {safeUnapprovedRegisters.length > 0 && `(${safeUnapprovedRegisters.length})`}
           </TabsTrigger>
           <TabsTrigger value="archived">Archived Items</TabsTrigger>
         </TabsList>
@@ -440,6 +472,7 @@ export default function LegalRegisterClient({
                   <TableHead>Compliance</TableHead>
                   <TableHead>Further Action</TableHead>
                   <TableHead>Reviewed</TableHead>
+                  <TableHead>Documents</TableHead>
                   <TableHead>Web Address</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -447,13 +480,24 @@ export default function LegalRegisterClient({
               <TableBody>
                 {filteredLegalRegisters.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-4">
+                    <TableCell colSpan={11} className="text-center py-4">
                       No legal register items found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredLegalRegisters.map((item) => (
-                    <TableRow key={item.id} className={item.section === "Air" ? "bg-green-50" : ""}>
+                    <TableRow 
+                      key={item.id} 
+                      className={`cursor-pointer hover:bg-gray-50 transition-colors ${item.section === "Air" ? "bg-green-50" : ""}`}
+                      onClick={(e) => {
+                        // Don't navigate if clicking on action buttons or links
+                        if ((e.target as HTMLElement).closest('button, a')) {
+                          return;
+                        }
+                        // Navigate to edit page
+                        window.location.href = `/legal-register/${item.id}/edit`;
+                      }}
+                    >
                       <TableCell>{item.section}</TableCell>
                       <TableCell>
                         <Link href={`/legal-register/${item.id}`} className="text-blue-600 hover:underline">
@@ -479,6 +523,17 @@ export default function LegalRegisterClient({
                       <TableCell className="max-w-xs truncate">{item.furtherAction}</TableCell>
                       <TableCell>{item.reviewed ? format(new Date(item.reviewed), "dd-MMM-yyyy") : "Never"}</TableCell>
                       <TableCell>
+                        {item.documentCount > 0 ? (
+                          <div className="flex items-center justify-center">
+                            <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded-full">
+                              {item.documentCount} doc{item.documentCount !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-center">No docs</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         {item.webAddress ? (
                           <a
                             href={item.webAddress}
@@ -492,7 +547,7 @@ export default function LegalRegisterClient({
                           <span className="text-gray-400">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end space-x-1">
                           {canEdit && (
                             <Button variant="ghost" size="icon" asChild disabled={!!loadingAction[item.id]}>
@@ -543,20 +598,31 @@ export default function LegalRegisterClient({
                   <TableHead>Applicability</TableHead>
                   <TableHead>Compliance</TableHead>
                   <TableHead>Further Action</TableHead>
-                  <TableHead>Reviewed</TableHead>
+                  <TableHead>Documents</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {unapprovedRegisters.length === 0 ? (
+                {safeUnapprovedRegisters.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-4">
+                    <TableCell colSpan={9} className="text-center py-4">
                       No items requiring approval
                     </TableCell>
                   </TableRow>
                 ) : (
-                  unapprovedRegisters.map((item) => (
-                    <TableRow key={item.id}>
+                  safeUnapprovedRegisters.map((item) => (
+                    <TableRow 
+                      key={item.id}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={(e) => {
+                        // Don't navigate if clicking on action buttons or links
+                        if ((e.target as HTMLElement).closest('button, a')) {
+                          return;
+                        }
+                        // Navigate to edit page
+                        window.location.href = `/legal-register/${item.id}/edit`;
+                      }}
+                    >
                       <TableCell>{item.section}</TableCell>
                       <TableCell>
                         <Link href={`/legal-register/${item.id}`} className="text-blue-600 hover:underline">
@@ -580,7 +646,18 @@ export default function LegalRegisterClient({
                         </Badge>
                       </TableCell>
                       <TableCell className="max-w-xs truncate">{item.furtherAction}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
+                        {item.documentCount > 0 ? (
+                          <div className="flex items-center justify-center">
+                            <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded-full">
+                              {item.documentCount} doc{item.documentCount !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-center">No docs</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end space-x-1">
                           {canApprove && (
                             <Button variant="outline" size="sm" onClick={() => handleApprove(item.id)} disabled={!!loadingAction[item.id]}>
@@ -622,19 +699,31 @@ export default function LegalRegisterClient({
                   <TableHead>Compliance</TableHead>
                   <TableHead>Further Action</TableHead>
                   <TableHead>Reviewed</TableHead>
+                  <TableHead>Documents</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {archivedRegisters.length === 0 ? (
+                {safeArchivedRegisters.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-4">
+                    <TableCell colSpan={10} className="text-center py-4">
                       No archived legal register items found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  archivedRegisters.map((item) => (
-                    <TableRow key={item.id}>
+                  safeArchivedRegisters.map((item) => (
+                    <TableRow 
+                      key={item.id}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={(e) => {
+                        // Don't navigate if clicking on action buttons or links
+                        if ((e.target as HTMLElement).closest('button, a')) {
+                          return;
+                        }
+                        // Navigate to edit page
+                        window.location.href = `/legal-register/${item.id}/edit`;
+                      }}
+                    >
                       <TableCell>{item.section}</TableCell>
                       <TableCell>
                         <Link href={`/legal-register/${item.id}`} className="text-blue-600 hover:underline">
@@ -659,7 +748,18 @@ export default function LegalRegisterClient({
                       </TableCell>
                       <TableCell className="max-w-xs truncate">{item.furtherAction}</TableCell>
                       <TableCell>{item.reviewed ? format(new Date(item.reviewed), "dd-MMM-yyyy") : "Never"}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
+                        {item.documentCount > 0 ? (
+                          <div className="flex items-center justify-center">
+                            <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded-full">
+                              {item.documentCount} doc{item.documentCount !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-center">No docs</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end space-x-1">
                           {canEdit && (
                             <Button variant="outline" size="sm" onClick={() => handleUnarchive(item.id)} disabled={!!loadingAction[item.id]}>

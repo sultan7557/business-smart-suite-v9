@@ -395,6 +395,11 @@ export default function SuppliersClient({
                     {documentStatus.count > 0 ? (
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-sm font-medium">{documentStatus.count} docs</span>
+                        {supplier.documents && supplier.documents.length > 0 && (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            {supplier.documents.filter((doc: any) => doc.assignedUserId).length} assigned
+                          </span>
+                        )}
                         {documentStatus.status === 'expired' && (
                           <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
                             {documentStatus.expired} expired

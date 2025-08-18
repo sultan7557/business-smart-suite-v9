@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2, ArrowUpDown, Archive, Plus, RotateCcw, Home, History, FileText } from 'lucide-react'
 import { toast } from "@/components/ui/use-toast"
@@ -27,6 +28,7 @@ export default function InterestedPartiesClient({
   canEdit, 
   canDelete 
 }: InterestedPartiesClientProps) {
+  const router = useRouter()
   const [formOpen, setFormOpen] = useState(false)
   const [selectedParty, setSelectedParty] = useState<any>(null)
   const [showArchived, setShowArchived] = useState(false)
@@ -99,100 +101,58 @@ export default function InterestedPartiesClient({
       })
     }
   }
-  
+
   const handleReorder = async (id: string, direction: "up" | "down") => {
     setLoadingAction((prev) => ({ ...prev, [id]: 'reorder' }))
     const result = await reorderInterestedParty(id, direction)
     setLoadingAction((prev) => ({ ...prev, [id]: null }))
-    if (!result.success) {
+    if (result.success) {
+      toast({
+        title: "Interested party reordered",
+        description: `The interested party has been moved ${direction}.`,
+      })
+      // Refresh the page to show the new order
+      window.location.reload()
+    } else {
       toast({
         title: "Error",
-        description: result.error || "Failed to reorder interested party.",
+        description: result.error || `Failed to move interested party ${direction}.`,
         variant: "destructive",
       })
     }
   }
-  
-  // Function to get color based on risk level
+
   const getRiskLevelColor = (level: number) => {
-    if (level <= 4) return "bg-green-500" // Low risk
-    if (level <= 9) return "bg-yellow-500" // Medium risk
-    if (level <= 14) return "bg-orange-500" // High risk
-    return "bg-red-500" // Very high risk
+    if (level <= 3) return "bg-green-500"
+    if (level <= 6) return "bg-yellow-500"
+    return "bg-red-500"
   }
 
-  const filteredParties = showArchived 
-    ? interestedParties 
-    : interestedParties.filter(party => !party.archived)
-
-  // Skeleton for progressive loading (future SSR/CSR)
-  if (!interestedParties) {
-    return (
-      <div className="py-8 flex justify-center">
-        <Loader size="lg" message="Loading interested parties..." />
-      </div>
-    )
-  }
+  const filteredParties = interestedParties.filter(party => 
+    showArchived ? true : !party.archived
+  )
 
   return (
     <>
-      <div className="flex justify-between mb-4">
-        {/* Back to Dashboard button */}
-        <Button
-          variant="outline"
-          asChild
-          className="flex items-center gap-2"
-        >
-          <Link href="/dashboard">
-            <Home className="h-4 w-4" />
-            Back to Dashboard
-          </Link>
-        </Button>
-
-        {/* Version History and Page Reviews buttons */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setVersionHistoryOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <History className="h-4 w-4" />
-            Version History
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={() => setPageReviewsOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            Page Reviews
-          </Button>
-
-          <Button
-            onClick={handleAddNew} 
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-4">
+          <Button onClick={handleAddNew} disabled={!canEdit}>
+            <Plus className="mr-2 h-4 w-4" />
             Add Interested Party
           </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => window.print()}
-            className="flex items-center gap-2"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Print
-        </Button>
-
-        {/* Existing archive toggle button */}
-        <Button
-          variant="outline"
+          <Button variant="outline" onClick={() => setVersionHistoryOpen(true)}>
+            <History className="mr-2 h-4 w-4" />
+            Version History
+          </Button>
+          <Button variant="outline" onClick={() => setPageReviewsOpen(true)}>
+            <Home className="mr-2 h-4 w-4" />
+            Page Reviews
+          </Button>
+        </div>
+        <Button 
+          variant="outline" 
           onClick={() => setShowArchived(!showArchived)}
-          className="flex items-center gap-2"
+          className="flex items-center space-x-2"
         >
           {showArchived ? (
             <>
@@ -206,7 +166,6 @@ export default function InterestedPartiesClient({
             </>
           )}
         </Button>
-        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -229,7 +188,17 @@ export default function InterestedPartiesClient({
               </tr>
             ) : (
               filteredParties.map((party) => (
-                <tr key={party.id} className={`border-b hover:bg-gray-50 ${party.archived ? 'bg-gray-100' : ''}`}>
+                <tr 
+                  key={party.id} 
+                  className={`border-b hover:bg-gray-50 cursor-pointer transition-colors ${party.archived ? 'bg-gray-100' : ''}`}
+                  onClick={(e) => {
+                    // Don't navigate if clicking on action buttons
+                    if ((e.target as HTMLElement).closest('button')) {
+                      return;
+                    }
+                    handleEdit(party);
+                  }}
+                >
                   <td className="border p-2">
                     <div className="font-medium">{party.name}</div>
                     <div className="text-sm text-gray-600 whitespace-pre-wrap">{party.needsExpectations}</div>
@@ -243,7 +212,7 @@ export default function InterestedPartiesClient({
                   <td className={`border p-2 text-center ${getRiskLevelColor(party.residualRiskLevel)} text-white font-bold`}>
                     {party.residualRiskLevel}
                   </td>
-                  <td className="border p-2">
+                  <td className="border p-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-center space-x-1">
                       {canEdit && !party.archived && (
                         <>

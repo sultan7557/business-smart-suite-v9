@@ -39,7 +39,7 @@ const GroupPermissionsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isGrantPermissionDialogOpen, setIsGrantPermissionDialogOpen] = useState(false);
   const [newPermissionRoleId, setNewPermissionRoleId] = useState('');
-  const [newPermissionSystemId, setNewPermissionSystemId] = useState('rkms-portal'); // Default
+  const [newPermissionSystemId, setNewPermissionSystemId] = useState('business-smart-suite'); // Default
   const [newPermissionExpiry, setNewPermissionExpiry] = useState('');
 
   const fetchGroupDetails = useCallback(async () => {
@@ -221,7 +221,7 @@ const GroupPermissionsPage: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="system-id-input" className="text-right">System ID</Label>
-                  <Input id="system-id-input" value={newPermissionSystemId} onChange={(e) => setNewPermissionSystemId(e.target.value)} className="col-span-3" placeholder="e.g., rkms-portal" />
+                  <Input id="system-id-input" value={newPermissionSystemId} onChange={(e) => setNewPermissionSystemId(e.target.value)} className="col-span-3" placeholder="e.g., business-smart-suite" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="expiry-input" className="text-right">Expiry Date (Optional)</Label>

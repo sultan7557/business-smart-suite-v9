@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import DocumentPreview from "@/components/document-preview"
 import { ReviewsSection } from "./reviews-section"
 import { AddReviewDialog } from "./add-review-dialog"
+import RiskAssessmentTemplateForm from "@/components/risk-assessment-template-form"
 
 interface ViewPageProps {
   params: Promise<{ id: string }>
@@ -135,15 +136,16 @@ export default async function ViewRiskAssessmentPage({ params }: ViewPageProps) 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">Department</CardTitle>
-        </CardHeader>
-        <CardContent>
+          </CardHeader>
+          <CardContent>
             <p className="text-lg font-semibold">{riskAssessment.department}</p>
           </CardContent>
         </Card>
-            </div>
+      </div>
 
-      <Tabs defaultValue="details" className="space-y-4">
+      <Tabs defaultValue="template" className="space-y-4">
         <TabsList className="w-full bg-gray-100">
+          <TabsTrigger value="template">Template View</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="document">Document</TabsTrigger>
           <TabsTrigger value="version-history">Version History</TabsTrigger>
@@ -154,6 +156,18 @@ export default async function ViewRiskAssessmentPage({ params }: ViewPageProps) 
             <Download className="h-4 w-4 mr-1" /> Download
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="template" className="border">
+          <Card>
+            <CardContent className="p-6">
+              <RiskAssessmentTemplateForm
+                riskAssessment={riskAssessment}
+                canEdit={canEdit}
+                categories={[riskAssessment.category]}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="details" className="border">
           <Card>

@@ -115,11 +115,6 @@ export default function LegalRegisterDocumentUpload({ legalRegisterId, onUploadC
 
       const document = await response.json()
 
-      toast({
-        title: "Success",
-        description: "Document uploaded successfully",
-      })
-
       // Reset form state after upload
       setFile(null)
       setTitle("")
@@ -129,10 +124,16 @@ export default function LegalRegisterDocumentUpload({ legalRegisterId, onUploadC
         onUploadComplete(document)
       }
 
-      // Redirect or refresh
+      // Show success message
+      toast({
+        title: "Success",
+        description: "Document uploaded successfully!",
+      })
+
+      // Use router.refresh() for proper Next.js revalidation
       setTimeout(() => {
         router.refresh()
-      }, 1000)
+      }, 500)
     } catch (error: any) {
       console.error("Error uploading document:", error)
       setError(error.message || "Failed to upload document")

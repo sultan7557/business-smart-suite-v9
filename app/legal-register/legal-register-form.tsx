@@ -60,19 +60,54 @@ export default function LegalRegisterForm({ legalRegister }: LegalRegisterFormPr
       if (!legalRegister?.id) return
       setLoadingDocuments(true)
       try {
-        const res = await fetch(`/api/legal-register/documents?legalRegisterId=${legalRegister.id}`)
+        const res = await fetch(`/api/legal-register/documents?legalRegisterId=${legalRegister.id}`, {
+          // Ensure fresh data
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
         if (res.ok) {
           const data = await res.json()
           setDocuments(data || [])
         }
       } catch (e) {
-        // ignore
+        console.error("Error fetching documents:", e)
       } finally {
         setLoadingDocuments(false)
       }
     }
     if (legalRegister?.id) fetchDocuments()
   }, [legalRegister?.id])
+
+  // Enhanced document upload completion handler
+  const handleDocumentUploadComplete = async (document: any) => {
+    try {
+      // Optimistically add the document to the local state
+      setDocuments(prev => [document, ...prev])
+      
+      // Also fetch fresh data to ensure consistency
+      const res = await fetch(`/api/legal-register/documents?legalRegisterId=${legalRegister!.id}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+      
+      if (res.ok) {
+        const freshData = await res.json()
+        setDocuments(freshData || [])
+      }
+    } catch (error) {
+      console.error("Error updating documents after upload:", error)
+      // Fallback: just refresh the page
+      window.location.reload()
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -240,21 +275,7 @@ export default function LegalRegisterForm({ legalRegister }: LegalRegisterFormPr
         <h3 className="font-medium mb-2">Documents</h3>
         {legalRegister ? (
           <div className="border p-4 rounded-md">
-            <LegalRegisterDocumentUpload legalRegisterId={legalRegister.id} onUploadComplete={() => {
-              // Re-fetch documents after upload
-              (async () => {
-                setLoadingDocuments(true)
-                try {
-                  const res = await fetch(`/api/legal-register/documents?legalRegisterId=${legalRegister.id}`)
-                  if (res.ok) {
-                    const data = await res.json()
-                    setDocuments(data || [])
-                  }
-                } finally {
-                  setLoadingDocuments(false)
-                }
-              })()
-            }} />
+            <LegalRegisterDocumentUpload legalRegisterId={legalRegister.id} onUploadComplete={handleDocumentUploadComplete} />
             <div className="mt-4 overflow-x-auto">
               {loadingDocuments ? (
                 <p className="text-gray-500">Loading documents...</p>

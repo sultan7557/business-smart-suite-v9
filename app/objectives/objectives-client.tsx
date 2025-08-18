@@ -174,7 +174,19 @@ export default function ObjectivesClient({
               </thead>
               <tbody>
                 {objectives.map((objective) => (
-                  <tr key={objective.id} className={`border-b ${objective.archived ? "bg-gray-100" : ""}`}>
+                  <tr 
+                    key={objective.id} 
+                    className={`border-b cursor-pointer hover:bg-gray-50 transition-colors ${objective.archived ? "bg-gray-100" : ""}`}
+                    onClick={(e) => {
+                      // Don't navigate if clicking on action buttons
+                      if ((e.target as HTMLElement).closest('button')) {
+                        return;
+                      }
+                      // Open edit dialog
+                      setSelectedObjective(objective);
+                      setIsEditDialogOpen(true);
+                    }}
+                  >
                     <td className="px-4 py-2">
                       {objective.categories.map((category: string) => (
                         <div key={category} className="text-xs inline-block bg-gray-200 rounded px-2 py-1 mr-1 mb-1">
@@ -207,7 +219,7 @@ export default function ObjectivesClient({
                         {objective.riskLevel}
                       </div>
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                       <div className="flex space-x-1">
                         <Button 
                           variant="ghost" 

@@ -209,10 +209,78 @@ export async function addLegalRegisterReview(
     })
 
     revalidatePath(`/legal-register/${legalRegisterId}`)
+    revalidatePath("/legal-register")
     return { success: true, data: review }
   } catch (error) {
     console.error("Error adding legal register review:", error)
     return { success: false, error: "Failed to add legal register review" }
+  }
+}
+
+export async function uploadLegalRegisterDocument(
+  legalRegisterId: string,
+  documentData: {
+    title: string
+    fileUrl: string
+    fileType: string
+    size: number
+  }
+) {
+  try {
+    const user = await getUser()
+    if (!user) {
+      throw new Error("Unauthorized")
+    }
+
+    // Use a single transaction to ensure data consistency
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the document
+      const document = await tx.legalRegisterDocument.create({
+        data: {
+          ...documentData,
+          uploadedById: user.id as string,
+          legalRegisterId,
+        },
+        include: {
+          uploadedBy: {
+            select: { name: true }
+          }
+        }
+      })
+
+      // Verify the document was created and fetch the updated legal register
+      const updatedLegalRegister = await tx.legalRegister.findUnique({
+        where: { id: legalRegisterId },
+        include: {
+          documents: {
+            include: {
+              uploadedBy: {
+                select: { name: true }
+              }
+            },
+            orderBy: {
+              uploadedAt: "desc"
+            }
+          }
+        }
+      })
+
+      if (!updatedLegalRegister) {
+        throw new Error("Legal register not found")
+      }
+
+      return { document, updatedLegalRegister }
+    })
+
+    // Immediately revalidate all related paths after successful transaction
+    revalidatePath(`/legal-register/${legalRegisterId}`)
+    revalidatePath(`/legal-register/${legalRegisterId}/edit`)
+    revalidatePath("/legal-register")
+    
+    return { success: true, data: result.document }
+  } catch (error) {
+    console.error("Error uploading legal register document:", error)
+    return { success: false, error: "Failed to upload document" }
   }
 }
 

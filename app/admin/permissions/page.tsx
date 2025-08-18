@@ -37,7 +37,7 @@ const PermissionsPage: React.FC = () => {
   const [userError, setUserError] = useState<string | null>(null);
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteSystemId, setInviteSystemId] = useState('rkms-portal');
+  const [inviteSystemId, setInviteSystemId] = useState('business-smart-suite');
   const [inviteRoleId, setInviteRoleId] = useState('');
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [roles, setRoles] = useState<{ id: string; name: string; description?: string | null }[]>([]);

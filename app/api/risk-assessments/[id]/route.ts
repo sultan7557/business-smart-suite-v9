@@ -66,11 +66,38 @@ export const PUT = withAuth(async (request: NextRequest, { params }: { params: {
     }
 
     const body = await request.json()
-    const { title, version, reviewDate, nextReviewDate, department, content, categoryId, highlighted, approved } = body
+    const { 
+      title, 
+      version, 
+      reviewDate, 
+      nextReviewDate, 
+      department, 
+      content, 
+      categoryId, 
+      highlighted, 
+      approved,
+      additionalRequirements,
+      whoMayBeHarmed,
+      ppeRequirements,
+      assessmentDetails
+    } = body
 
     if (!title || !version || !reviewDate || !department || !categoryId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
+
+    // First, delete existing template data if it exists
+    await prisma.assessmentDetail.deleteMany({
+      where: { riskAssessmentId: params.id }
+    })
+
+    await prisma.whoMayBeHarmed.deleteMany({
+      where: { riskAssessmentId: params.id }
+    })
+
+    await prisma.ppeRequirements.deleteMany({
+      where: { riskAssessmentId: params.id }
+    })
 
     const riskAssessment = await prisma.riskAssessment.update({
       where: { id: params.id },
@@ -80,11 +107,25 @@ export const PUT = withAuth(async (request: NextRequest, { params }: { params: {
         reviewDate: new Date(reviewDate),
         nextReviewDate: nextReviewDate ? new Date(nextReviewDate) : null,
         department,
-        content,
+        content: content || "",
         categoryId,
         highlighted: highlighted || false,
         approved: approved || false,
+        additionalRequirements,
         updatedById: user.id,
+        // Create new template data
+        whoMayBeHarmed: whoMayBeHarmed ? {
+          create: whoMayBeHarmed
+        } : undefined,
+        ppeRequirements: ppeRequirements ? {
+          create: ppeRequirements
+        } : undefined,
+        assessmentDetails: assessmentDetails ? {
+          create: assessmentDetails.map((detail: any, index: number) => ({
+            ...detail,
+            order: index + 1
+          }))
+        } : undefined
       },
     })
 

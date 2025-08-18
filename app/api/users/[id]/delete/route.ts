@@ -72,7 +72,7 @@ export async function DELETE(
       data: {
         action: "USER_DELETED",
         userId: "SYSTEM", // Since user is deleted, use SYSTEM
-        systemId: "rkms-portal",
+        systemId: "business-smart-suite",
         roleId: "system",
         performedBy: currentUser.id,
         details: { 

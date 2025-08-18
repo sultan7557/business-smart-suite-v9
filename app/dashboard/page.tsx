@@ -234,8 +234,13 @@ export default function DashboardPage() {
               <div>
                 <h1 className="text-4xl font-bold text-white mb-3 drop-shadow-lg">Business Smart Suite</h1>
                 <p className="text-purple-200 text-xl drop-shadow">Your comprehensive business management portal</p>
-                </div>
+              </div>
               <div className="flex items-center gap-4">
+                <Link href="/analytics">
+                  <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400/50 backdrop-blur-sm">
+                    Analytics Dashboard
+                  </button>
+                </Link>
                 <CustomSectionDialog onSuccess={() => {
                   fetch("/api/custom-sections").then(res => res.json()).then(data => setCustomSections(data))
                 }} />
@@ -409,14 +414,7 @@ export default function DashboardPage() {
               })}
             </div>
 
-            {/* Professional Analytics Button */}
-            <div className="flex justify-center mt-12">
-              <Link href="/analytics">
-                <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg text-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400/50 backdrop-blur-sm">
-                  View Analytics Dashboard
-                </button>
-              </Link>
-            </div>
+
               </div>
               </div>
 

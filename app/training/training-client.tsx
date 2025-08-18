@@ -7,10 +7,16 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/use-toast"
-import { Printer, Plus, Users, GraduationCap, X, User } from 'lucide-react'
+import { Printer, Plus, Users, GraduationCap, X, User, ChevronLeft, ChevronRight, Info } from 'lucide-react'
 import { generateTrainingMatrix, unarchiveEmployee } from "../actions/training-actions"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Loader } from '@/components/ui/loader'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface TrainingClientProps {
   employees: any[]
@@ -31,6 +37,7 @@ export default function TrainingClient({
   const [showRoleRestrictions, setShowRoleRestrictions] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [loadingAction, setLoadingAction] = useState<{ [id: string]: string | null }>({})
+  const [scrollPosition, setScrollPosition] = useState(0)
   
   // Filter employees based on filter text
   const filteredEmployees = employees.filter(employee => {
@@ -42,7 +49,47 @@ export default function TrainingClient({
     
     return matchesFilter && (showArchived || !employee.archived)
   })
+
+  // Get unique skills/courses for column headers
+  const uniqueSkills = skills || []
   
+  // Helper function to get completion date for a specific skill
+  const getCompletionDate = (employee: any, skillId: string) => {
+    const employeeSkill = employee.employeeSkills?.find((es: any) => es.skillId === skillId)
+    return employeeSkill?.dateCompleted ? new Date(employeeSkill.dateCompleted) : null
+  }
+
+  // Helper function to format completion date
+  const formatCompletionDate = (date: Date | null) => {
+    if (!date) return "Not completed"
+    return date.toLocaleDateString()
+  }
+
+  // Helper function to get completion status for styling
+  const getCompletionStatus = (date: Date | null) => {
+    if (!date) return "not-completed"
+    const daysSinceCompletion = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
+    if (daysSinceCompletion <= 30) return "recent"
+    if (daysSinceCompletion <= 90) return "moderate"
+    return "old"
+  }
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    const container = document.getElementById('training-table-container')
+    if (container) {
+      const scrollAmount = 300 // Scroll by 300px
+      const newPosition = direction === 'left' 
+        ? Math.max(0, scrollPosition - scrollAmount)
+        : scrollPosition + scrollAmount
+      
+      container.scrollTo({
+        left: newPosition,
+        behavior: 'smooth'
+      })
+      setScrollPosition(newPosition)
+    }
+  }
+
   const handlePrintTrainingMatrix = async () => {
     try {
       setIsExporting(true)
@@ -55,7 +102,7 @@ export default function TrainingClient({
       }
       
       // Convert array buffer to blob
-      const blob = new Blob([result.data.buffer], { 
+      const blob = new Blob([result.data!.buffer], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       })
       
@@ -63,7 +110,7 @@ export default function TrainingClient({
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = result.data?.filename || 'Training_Matrix.xlsx'
+      a.download = result.data!.filename || 'Training_Matrix.xlsx'
       document.body.appendChild(a)
       a.click()
       
@@ -113,8 +160,9 @@ export default function TrainingClient({
   }
   
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <TooltipProvider>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
         <div className="flex items-center">
           <User className="h-6 w-6 mr-2" />
           <h1 className="text-2xl font-bold">Employees</h1>
@@ -176,40 +224,165 @@ export default function TrainingClient({
           Filter employees
         </Button>
       </div>
+
+      {/* Horizontal Scroll Controls */}
+      {uniqueSkills.length > 0 && (
+        <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-700">
+              {uniqueSkills.length} Course{uniqueSkills.length !== 1 ? 's' : ''} Available
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleScroll('left')}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleScroll('right')}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Training Statistics */}
+      {uniqueSkills.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div className="bg-white p-4 rounded-lg border shadow-sm">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <GraduationCap className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Total Courses</p>
+                <p className="text-2xl font-bold text-gray-900">{uniqueSkills.length}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg border shadow-sm">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Users className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Active Employees</p>
+                <p className="text-2xl font-bold text-gray-900">{filteredEmployees.filter(e => !e.archived).length}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg border shadow-sm">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <User className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Mandatory Courses</p>
+                <p className="text-2xl font-bold text-gray-900">{uniqueSkills.filter(s => s.mandatory).length}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg border shadow-sm">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Printer className="h-6 w-6 text-purple-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Completion Rate</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {(() => {
+                    const totalPossible = filteredEmployees.filter(e => !e.archived).length * uniqueSkills.length;
+                    const totalCompleted = filteredEmployees.filter(e => !e.archived).reduce((acc, emp) => {
+                      return acc + (emp.employeeSkills?.length || 0);
+                    }, 0);
+                    return totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+                  })()}%
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="border rounded-md overflow-hidden">
+        <div 
+          id="training-table-container"
+          className="overflow-x-auto training-table-container"
+          style={{ 
+            maxHeight: '70vh'
+          }}
+        >
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 sticky top-0 z-20">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Occupation</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed Courses</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              {/* Fixed columns */}
+              <th className="sticky-left-0 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] border-r border-gray-200">
+                Employee
+              </th>
+              <th className="sticky-left-200 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] border-r border-gray-200">
+                Occupation
+              </th>
+              <th className="sticky-left-350 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] border-r border-gray-200">
+                Department
+              </th>
+              
+              {/* Dynamic course columns */}
+              {uniqueSkills.map((skill, index) => (
+                <th 
+                  key={skill.id} 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px] bg-gray-50 border-r border-gray-200"
+                >
+                  <div className="flex flex-col">
+                    <span className="font-semibold">{skill.name}</span>
+                    {skill.mandatory && (
+                      <span className="text-xs text-red-600 font-medium">Mandatory</span>
+                    )}
+                    {skill.frequencyDays > 0 && (
+                      <span className="text-xs text-blue-600 font-medium">
+                        {skill.frequencyDays} days
+                      </span>
+                    )}
+                  </div>
+                </th>
+              ))}
+              
+              {/* Actions column */}
+              <th className="sticky-right-0 bg-gray-50 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] border-l border-gray-200">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {typeof employees === 'undefined' ? (
-              <tr><td colSpan={5}><div className="py-8 flex justify-center"><Loader size="lg" message="Loading employees..." /></div></td></tr>
+              <tr>
+                <td colSpan={5 + uniqueSkills.length} className="px-6 py-4">
+                  <div className="py-8 flex justify-center">
+                    <Loader size="lg" message="Loading employees..." />
+                  </div>
+                </td>
+              </tr>
             ) : filteredEmployees.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td colSpan={5 + uniqueSkills.length} className="px-6 py-4 text-center text-sm text-gray-500">
                   No employees found
                 </td>
               </tr>
             ) : (
-              filteredEmployees.map((employee) => {
-                // Get completed courses (skills)
-                const completedSkills = (employee.employeeSkills || []).map((es: { skill: { name: string }, dateCompleted: string }) => ({
-                  name: es.skill?.name,
-                  dateCompleted: es.dateCompleted,
-                })).filter((s) => !!s.name)
-                const maxVisible = 3
-                const visibleSkills = completedSkills.slice(0, maxVisible)
-                const hiddenSkills = completedSkills.slice(maxVisible)
-                return (
-                <tr key={employee.id} className={employee.archived ? "bg-gray-100" : ""}>
-                  <td className="px-6 py-4 whitespace-nowrap">
+              filteredEmployees.map((employee) => (
+                <tr key={employee.id} className={employee.archived ? "bg-gray-100" : "hover:bg-gray-50"}>
+                  {/* Fixed columns */}
+                  <td className="sticky-left-0 bg-white px-6 py-4 whitespace-nowrap min-w-[200px] border-r border-gray-200">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         {employee.profilePicture ? (
@@ -231,28 +404,51 @@ export default function TrainingClient({
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="sticky-left-200 bg-white px-6 py-4 whitespace-nowrap text-sm text-gray-500 min-w-[150px] border-r border-gray-200">
                     {employee.occupation}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="sticky-left-350 bg-white px-6 py-4 whitespace-nowrap text-sm text-gray-500 min-w-[150px] border-r border-gray-200">
                     {employee.department}
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex flex-wrap gap-1 items-center">
-                        {visibleSkills.map((skill: { name: string; dateCompleted: string }, idx: number) => (
-                          <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium" title={skill.dateCompleted ? `Completed: ${new Date(skill.dateCompleted).toLocaleDateString()}` : undefined}>
-                            {skill.name}
-                          </span>
-                        ))}
-                        {hiddenSkills.length > 0 && (
-                          <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs font-medium" title={hiddenSkills.map((s: { name: string; dateCompleted: string }) => `${s.name}${s.dateCompleted ? ` (Completed: ${new Date(s.dateCompleted).toLocaleDateString()})` : ''}`).join(', ')}>
-                            +{hiddenSkills.length} more
-                          </span>
-                        )}
-                        {completedSkills.length === 0 && <span className="text-gray-400">None</span>}
-                      </div>
-                    </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  
+                                      {/* Dynamic course columns */}
+                    {uniqueSkills.map((skill) => {
+                      const completionDate = getCompletionDate(employee, skill.id)
+                      const status = getCompletionStatus(completionDate)
+                      
+                      return (
+                        <td key={skill.id} className="px-6 py-4 whitespace-nowrap text-sm min-w-[180px] border-r border-gray-200">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium completion-status-${status} cursor-help`}>
+                                  {formatCompletionDate(completionDate)}
+                                  {completionDate && (
+                                    <Info className="h-3 w-3 ml-1" />
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="text-center">
+                                  <p className="font-medium">{skill.name}</p>
+                                  {completionDate ? (
+                                    <p>Completed: {completionDate.toLocaleDateString()}</p>
+                                  ) : (
+                                    <p>Not completed</p>
+                                  )}
+                                  {skill.mandatory && (
+                                    <p className="text-red-600 text-xs mt-1">Mandatory course</p>
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </td>
+                      )
+                    })}
+                  
+                  {/* Actions column */}
+                  <td className="sticky-right-0 bg-white px-6 py-4 whitespace-nowrap text-right text-sm font-medium min-w-[120px] border-l border-gray-200">
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -274,11 +470,11 @@ export default function TrainingClient({
                     )}
                   </td>
                 </tr>
-                )
-              })
+              ))
             )}
           </tbody>
         </table>
+        </div>
       </div>
       
       {/* Back to Registers Button */}
@@ -287,6 +483,7 @@ export default function TrainingClient({
           <Link href="/registers">Back to Registers</Link>
         </Button>
       </div>
-    </div>
+      </div>
+    </TooltipProvider>
   )
 }

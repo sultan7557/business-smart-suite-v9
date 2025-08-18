@@ -134,15 +134,9 @@ export async function toggleHighlight(id: string, type: "riskAssessment" | "cate
         },
       })
     } else {
-      const category = await prisma.riskAssessmentCategory.findUnique({
-        where: { id },
-        select: { highlighted: true },
-      })
-
-      await prisma.riskAssessmentCategory.update({
-        where: { id },
-        data: { highlighted: !category?.highlighted },
-      })
+      // Categories don't have highlighted property in current schema
+      // This functionality will be added after database migration
+      throw new Error("Highlight functionality not available for categories yet")
     }
 
     revalidatePath("/risk-assessments")
@@ -367,6 +361,10 @@ export async function addRiskAssessment(data: {
   department: string
   content: string
   categoryId: string
+  whoMayBeHarmed?: any
+  ppeRequirements?: any
+  assessmentDetails?: any
+  additionalRequirements?: string
 }) {
   try {
     const user = await getUser()
@@ -383,16 +381,30 @@ export async function addRiskAssessment(data: {
 
     const newOrder = highestOrderRiskAssessment ? highestOrderRiskAssessment.order + 1 : 0
 
+    // Create the risk assessment with template data
     const riskAssessment = await prisma.riskAssessment.create({
       data: {
         title: data.title,
         version: data.version,
         reviewDate: new Date(data.reviewDate),
         department: data.department,
-        content: data.content,
+        content: data.content || "",
         categoryId: data.categoryId,
         createdById: user.id as string,
         order: newOrder,
+        additionalRequirements: data.additionalRequirements,
+        whoMayBeHarmed: data.whoMayBeHarmed ? {
+          create: data.whoMayBeHarmed
+        } : undefined,
+        ppeRequirements: data.ppeRequirements ? {
+          create: data.ppeRequirements
+        } : undefined,
+        assessmentDetails: data.assessmentDetails ? {
+          create: data.assessmentDetails.map((detail: any, index: number) => ({
+            ...detail,
+            order: index + 1
+          }))
+        } : undefined
       },
     })
 

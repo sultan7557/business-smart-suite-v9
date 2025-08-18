@@ -21,6 +21,14 @@ export async function getSuppliers(includeArchived: boolean = false) {
             id: true,
             title: true,
             expiryDate: true,
+            assignedUserId: true,
+            assignedUser: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
           },
           orderBy: { uploadedAt: 'desc' },
         },
@@ -38,7 +46,26 @@ export async function getSupplier(id: string) {
     const supplier = await prisma.supplier.findUnique({
       where: { id },
       include: {
-        documents: true,
+        documents: {
+          select: {
+            id: true,
+            title: true,
+            fileUrl: true,
+            fileType: true,
+            size: true,
+            uploadedAt: true,
+            expiryDate: true,
+            assignedUserId: true,
+            assignedUser: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          },
+          orderBy: { uploadedAt: 'desc' }
+        },
         reviews: {
           orderBy: { reviewDate: "desc" },
         },
@@ -312,10 +339,20 @@ export async function uploadSupplierDocument(supplierId: string, formData: FormD
             createdById: user.id
           }
         }
+      },
+      include: {
+        assignedUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       }
     });
     
-    revalidatePath(`/suppliers/${supplierId}`);
+    // Don't revalidate immediately to avoid UI flicker
+    // The optimistic update will handle the UI, and the next page load will show fresh data
     
     return { success: true, data: document };
   } catch (error) {

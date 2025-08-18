@@ -747,3 +747,89 @@
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Training table specific styles */
+.training-table-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.training-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.training-table-container::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.training-table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.training-table-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Ensure sticky positioning works correctly */
+.sticky-left-0 {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+}
+
+.sticky-left-200 {
+  position: sticky;
+  left: 200px;
+  z-index: 20;
+}
+
+.sticky-left-350 {
+  position: sticky;
+  left: 350px;
+  z-index: 20;
+}
+
+.sticky-right-0 {
+  position: sticky;
+  right: 0;
+  z-index: 20;
+}
+
+/* Course completion status indicators */
+.completion-status-not-completed {
+  @apply bg-gray-100 text-gray-600;
+}
+
+.completion-status-recent {
+  @apply bg-green-100 text-green-800;
+}
+
+.completion-status-moderate {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.completion-status-old {
+  @apply bg-red-100 text-red-800;
+}
+

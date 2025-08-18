@@ -342,7 +342,20 @@ export default function MaintenanceClient({
             </div>
             <div className="flex flex-col w-full">
               {filteredItems.map((item) => (
-                <div key={item.id} className={`flex flex-wrap md:flex-nowrap border-b items-center ${item.archived ? "bg-gray-100" : ""}`} style={{ minWidth: 0 }}>
+                <div 
+                  key={item.id} 
+                  className={`flex flex-wrap md:flex-nowrap border-b items-center cursor-pointer hover:bg-gray-50 transition-colors ${item.archived ? "bg-gray-100" : ""}`} 
+                  style={{ minWidth: 0 }}
+                  onClick={(e) => {
+                    // Don't navigate if clicking on action buttons
+                    if ((e.target as HTMLElement).closest('button')) {
+                      return;
+                    }
+                    // Open edit dialog
+                    setSelectedItem(item);
+                    setEditDialogOpen(true);
+                  }}
+                >
                   <div className="flex-[2] px-2 py-2 truncate" title={item.name}>{item.name}</div>
                   <div className="flex-1 px-2 py-2 truncate" title={item.reference}>{item.reference || "-"}</div>
                   <div className="flex-1 px-2 py-2 truncate" title={item.serialNumber}>{item.serialNumber || "-"}</div>
@@ -354,7 +367,7 @@ export default function MaintenanceClient({
                     <div className={`text-center font-bold rounded-md p-2 ${getDueDateColor(item.dueDate)}`}>{format(new Date(item.dueDate), "dd/MM/yyyy")}</div>
                   </div>
                   <div className="flex-1 px-2 py-2 truncate" title={item.owner}>{item.owner}</div>
-                  <div className="flex-1 px-2 py-2">
+                  <div className="flex-1 px-2 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex space-x-1">
                       <Button 
                         variant="ghost" 

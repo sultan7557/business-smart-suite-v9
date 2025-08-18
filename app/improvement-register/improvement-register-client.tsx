@@ -454,7 +454,18 @@ export default function ImprovementRegisterClient({
                 </TableHeader>
                 <TableBody>
                   {items.map((improvement) => (
-                    <TableRow key={improvement.id}>
+                    <TableRow 
+                      key={improvement.id}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={(e) => {
+                        // Don't navigate if clicking on action buttons
+                        if ((e.target as HTMLElement).closest('button, a')) {
+                          return;
+                        }
+                        // Navigate to edit page
+                        window.location.href = `/improvement-register/${improvement.id}/edit`;
+                      }}
+                    >
                       <TableCell>{improvement.number}</TableCell>
                       <TableCell>{format(new Date(improvement.dateRaised), "dd/MMM/yyyy")}</TableCell>
                       <TableCell>{improvement.category}</TableCell>
@@ -467,7 +478,7 @@ export default function ImprovementRegisterClient({
                         {improvement.dateDue ? format(new Date(improvement.dateDue), "MMM yyyy") : "N/A"}
                       </TableCell>
                       <TableCell>{getOwnerName(improvement)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end space-x-1">
                           <Button 
                             variant="ghost" 
@@ -580,7 +591,18 @@ export default function ImprovementRegisterClient({
                 </TableHeader>
                 <TableBody>
                   {items.map((improvement) => (
-                    <TableRow key={improvement.id}>
+                    <TableRow 
+                      key={improvement.id}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={(e) => {
+                        // Don't navigate if clicking on action buttons
+                        if ((e.target as HTMLElement).closest('button, a')) {
+                          return;
+                        }
+                        // Navigate to edit page
+                        window.location.href = `/improvement-register/${improvement.id}/edit`;
+                      }}
+                    >
                       <TableCell>{improvement.number}</TableCell>
                       <TableCell>{format(new Date(improvement.dateRaised), "dd/MMM/yyyy")}</TableCell>
                       <TableCell>{improvement.category}</TableCell>
@@ -596,7 +618,7 @@ export default function ImprovementRegisterClient({
                         {improvement.dateCompleted ? format(new Date(improvement.dateCompleted), "MMM yyyy") : "N/A"}
                       </TableCell>
                       <TableCell>{getOwnerName(improvement)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end space-x-1">
                           <Button 
                             variant="ghost" 

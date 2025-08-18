@@ -265,7 +265,19 @@ export default function OrganizationalContextClient({
                   </thead>
                   <tbody>
                     {groupedEntries[category].map((entry: any) => (
-                      <tr key={entry.id} className={`border-b ${entry.archived ? "bg-gray-100" : ""}`}>
+                      <tr 
+                        key={entry.id} 
+                        className={`border-b cursor-pointer hover:bg-gray-50 transition-colors ${entry.archived ? "bg-gray-100" : ""}`}
+                        onClick={(e) => {
+                          // Don't navigate if clicking on action buttons
+                          if ((e.target as HTMLElement).closest('button')) {
+                            return;
+                          }
+                          // Open edit dialog
+                          setSelectedEntry(entry);
+                          setIsDialogOpen(true);
+                        }}
+                      >
                         <td className="px-4 py-2">
                           <div className="font-medium">{entry.issue}</div>
                           <div className="text-xs text-muted-foreground">{entry.subCategory}</div>
@@ -290,7 +302,7 @@ export default function OrganizationalContextClient({
                             ))}
                           </ul>
                         </td>
-                        <td className="px-4 py-2">
+                        <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                           <div className="flex space-x-1">
                             <Dialog open={isViewDialogOpen && selectedEntry?.id === entry.id} onOpenChange={(open) => {
                               setIsViewDialogOpen(open);

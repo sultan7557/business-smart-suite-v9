@@ -14,7 +14,7 @@ import { Loader } from '@/components/ui/loader'
 
 interface DocumentUploadProps {
   supplierId: string
-  onUploadComplete?: () => void
+  onUploadComplete?: (newDocument?: any) => void
 }
 
 export default function DocumentUpload({ supplierId, onUploadComplete }: DocumentUploadProps) {
@@ -63,8 +63,8 @@ export default function DocumentUpload({ supplierId, onUploadComplete }: Documen
         setSelectedFile(null);
         setNotes("");
         setExpiryDate("");
-        router.refresh();
-        if (onUploadComplete) onUploadComplete();
+        // Pass the new document data to the callback for optimistic updates
+        if (onUploadComplete) onUploadComplete(result.data);
       } else {
         throw new Error(result.error || 'Failed to upload document');
       }

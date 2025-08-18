@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
   if (!supplierId) {
     return NextResponse.json([], { status: 200 })
   }
+  
   const documents = await prisma.supplierDocument.findMany({
     where: { supplierId },
     orderBy: { uploadedAt: 'desc' },
@@ -17,7 +18,22 @@ export async function GET(req: NextRequest) {
       size: true,
       uploadedAt: true,
       expiryDate: true,
+      assignedUserId: true,
+      assignedUser: {
+        select: {
+          id: true,
+          name: true,
+          email: true
+        }
+      }
     },
   })
-  return NextResponse.json(documents)
+  
+  // Set cache control headers to prevent caching
+  const response = NextResponse.json(documents)
+  response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
+  
+  return response
 } 

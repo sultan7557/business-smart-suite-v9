@@ -52,7 +52,7 @@ export async function POST(
       data: {
         action: "USER_REACTIVATED",
         userId,
-        systemId: "rkms-portal",
+        systemId: "business-smart-suite",
         roleId: "system",
         performedBy: currentUser.id,
         details: { 

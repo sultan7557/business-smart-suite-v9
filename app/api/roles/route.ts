@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         description: description || null,
-        systemId: systemId || 'rkms-portal',
+        systemId: systemId || 'business-smart-suite',
       },
     });
 
