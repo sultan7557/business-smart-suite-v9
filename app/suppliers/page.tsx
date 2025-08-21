@@ -4,7 +4,7 @@ import { Suspense } from "react"
 import { Loader } from '@/components/ui/loader'
 import { getSuppliers, getSupplierVersions } from "../actions/supplier-actions"
 import SuppliersClient from "./suppliers-client"
-import { getUser } from "@/lib/auth"
+import { getUser, canWrite, canDelete } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
 export const metadata = {
@@ -37,16 +37,16 @@ async function SuppliersPage() {
     throw new Error("Failed to fetch suppliers or versions")
   }
 
-  // Determine user permissions
-  const canEdit = user.role === "admin" || user.role === "manager"
-  const canDelete = user.role === "admin"
+  // Determine user permissions for suppliers system
+  const canEdit = await canWrite("suppliers")
+  const canDeletePermission = await canDelete("suppliers")
 
   return (
     <SuppliersClient 
       suppliers={suppliersResult.data || []}
       versions={versionsResult.data || []}
       canEdit={canEdit}
-      canDelete={canDelete}
+      canDelete={canDeletePermission}
     />
   )
 }

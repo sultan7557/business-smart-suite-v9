@@ -1,7 +1,7 @@
 // app/training/skills/page.tsx
 
 import { getSkills } from "../../actions/training-actions"
-import { getUser } from "@/lib/auth"
+import { getUser, canWrite, canDelete } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import SkillsManagement from "./skills-management"
 
@@ -10,15 +10,16 @@ export const metadata = {
   description: "Manage skills in the Business Smart Suite Portal",
 }
 
-export default async function SkillsPage() {
-    const user = await getUser()
-    if (!user) {
-      redirect("/login")
-    }
-    
-    const canEdit = user.role === "admin" || user.role === "manager"
-    const canDelete = user.role === "admin"
-  
+async function SkillsPage() {
+  const user = await getUser()
+  if (!user) {
+    redirect("/login")
+  }
+
+  // Determine user permissions for training system
+  const canEdit = await canWrite("training")
+  const canDeletePermission = await canDelete("training")
+
   if (!canEdit) {
     redirect("/training")
   }
@@ -31,8 +32,10 @@ export default async function SkillsPage() {
       <SkillsManagement 
         skills={skills}
         canEdit={canEdit}
-        canDelete={canDelete}
+        canDelete={canDeletePermission}
       />
     </div>
   )
 }
+
+export default SkillsPage

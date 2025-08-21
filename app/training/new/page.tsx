@@ -3,7 +3,7 @@
 import { Suspense } from "react"
 import { Loader } from '@/components/ui/loader'
 import { getSkills } from "../../actions/training-actions"
-import { getUser } from "@/lib/auth"
+import { getUser, canWrite } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import EmployeeForm from "../employee-form"
 
@@ -27,9 +27,10 @@ async function NewEmployeePage() {
   if (!user) {
     redirect("/login")
   }
-  
-  const canEdit = user.role === "admin" || user.role === "manager"
-  
+
+  // Determine user permissions for training system
+  const canEdit = await canWrite("training")
+
   if (!canEdit) {
     redirect("/training")
   }

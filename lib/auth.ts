@@ -401,7 +401,7 @@ export async function hasPermission(requiredPermission: string, systemId?: strin
     return true;
   }
 
-  // For generic permissions like "write", "delete", "read", check if user has access to the system
+  // For generic permissions like "write", "delete", "read", "edit", "manage", check if user has access to the system
   if (["write", "delete", "read", "edit", "manage"].includes(requiredPermission)) {
     // If systemId is provided, check if user has access to that specific system
     if (systemId) {
@@ -414,6 +414,40 @@ export async function hasPermission(requiredPermission: string, systemId?: strin
 
   // For system-specific permissions, check exact match
   return user.permissions.includes(requiredPermission);
+}
+
+// New function to check if user has write permissions for a specific system
+export async function canWrite(systemId: string): Promise<boolean> {
+  const user = await getUser()
+  
+  if (!user) {
+    return false
+  }
+
+  // Admin role has all permissions
+  if (user.role === "admin") {
+    return true
+  }
+
+  // Check if user has access to this specific system
+  return user.permissions.includes(systemId)
+}
+
+// New function to check if user has delete permissions for a specific system
+export async function canDelete(systemId: string): Promise<boolean> {
+  const user = await getUser()
+  
+  if (!user) {
+    return false
+  }
+
+  // Admin role has all permissions
+  if (user.role === "admin") {
+    return true
+  }
+
+  // Check if user has access to this specific system
+  return user.permissions.includes(systemId)
 }
 
 // Fixed handler type definition to accept context parameter

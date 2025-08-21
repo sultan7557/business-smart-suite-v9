@@ -1,7 +1,7 @@
 // app/training/[id]/page.tsx
 
 import { getEmployee, getSkills } from "../../actions/training-actions"
-import { getUser } from "@/lib/auth"
+import { getUser, canWrite, canDelete } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import EmployeeDetail from "../employee-detail"
 
@@ -21,10 +21,11 @@ export default async function EmployeeDetailPage({ params }: EmployeeDetailPageP
   if (!user) {
     redirect("/login")
   }
-  
-  const canEdit = user.role === "admin" || user.role === "manager"
-  const canDelete = user.role === "admin"
-  
+
+  // Determine user permissions for training system
+  const canEdit = await canWrite("training")
+  const canDeletePermission = await canDelete("training")
+
   // Await params before accessing its properties
   const { id } = await params;
   
@@ -44,7 +45,7 @@ export default async function EmployeeDetailPage({ params }: EmployeeDetailPageP
         employee={employee} 
         skills={skills}
         canEdit={canEdit}
-        canDelete={canDelete}
+        canDelete={canDeletePermission}
       />
     </div>
   )

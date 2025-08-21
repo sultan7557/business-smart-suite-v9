@@ -4,7 +4,7 @@ import { Suspense } from "react"
 import { Loader } from '@/components/ui/loader'
 import { getEmployees, getSkills } from "../actions/training-actions"
 import TrainingClient from "./training-client"
-import { getUser } from "@/lib/auth"
+import { getUser, canWrite, canDelete } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
 export const metadata = {
@@ -26,8 +26,9 @@ async function TrainingPage() {
       redirect("/login")
     }
     
-    const canEdit = user.role === "admin" || user.role === "manager"
-    const canDelete = user.role === "admin"
+    // Determine user permissions for training system
+    const canEdit = await canWrite("training")
+    const canDeletePermission = await canDelete("training")
   
   const employeesResult = await getEmployees(true)
   const skillsResult = await getSkills()
@@ -41,7 +42,7 @@ async function TrainingPage() {
         employees={employees} 
         skills={skills}
         canEdit={canEdit}
-        canDelete={canDelete}
+        canDelete={canDeletePermission}
       />
     </div>
   )
