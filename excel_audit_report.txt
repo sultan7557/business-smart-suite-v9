@@ -1,0 +1,11 @@
+# Excel Audit Report
+
+File: Environmental Performance Data.xlsx
+
+## Sheets (5): COVER, BASELINE DATA, YEAR 1 DATA, YEAR 2 DATA, YEAR 3 DATA
+
+Found 0 defined names.
+
+## Alignment Heuristic
+
+Could not confidently infer a single common key to align across Baseline/Year sheets.

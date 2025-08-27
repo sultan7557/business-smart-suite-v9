@@ -7,14 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
-import { useToast } from "@/components/ui/use-toast"
 import { format } from "date-fns"
 import { createSupplier, updateSupplier } from "../actions/supplier-actions"
 import { ArrowLeft } from 'lucide-react'
 import Link from "next/link"
 import DocumentUpload from "./document-upload"
 import { Loader } from '@/components/ui/loader'
-import { assignDocumentToUser, getUsersForAssignment } from "../actions/supplier-document-actions"
+import { assignDocumentToUser } from "../actions/supplier-document-actions"
 
 interface SupplierFormProps {
   supplier?: {
@@ -102,16 +101,17 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
       console.log('SupplierForm: fetchUsers started')
       setLoadingUsers(true)
       try {
-        console.log('SupplierForm: Calling getUsersForAssignment...')
-        const result = await getUsersForAssignment()
-        console.log('SupplierForm: getUsersForAssignment result:', result)
-        
-        if (result && result.success && 'data' in result) {
-          console.log('SupplierForm: Setting users:', result.data)
-          setUsers(result.data || [])
-        } else {
-          console.error('SupplierForm: Failed to fetch users:', result && 'error' in result ? result.error : 'No result')
+        // Use API endpoint to avoid server action hydration issues across deployments
+        const res = await fetch(`/api/users?status=ACTIVE&pageSize=1000`, { cache: 'no-store' })
+        if (!res.ok) {
+          const text = await res.text().catch(() => '')
+          console.error('SupplierForm: Failed to fetch users via API:', res.status, text)
+          return
         }
+        const data = await res.json()
+        const apiUsers = Array.isArray(data?.users) ? data.users : []
+        console.log('SupplierForm: Setting users from API:', apiUsers)
+        setUsers(apiUsers)
       } catch (error) {
         console.error('SupplierForm: Error fetching users:', error)
       } finally {
@@ -242,14 +242,15 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
         ? await updateSupplier(supplier!.id, formData)
         : await createSupplier(formData)
       
-      if (result.success) {
+      if (result && result.success) {
         toast({
           title: "Success",
           description: `Supplier ${isEdit ? "updated" : "created"} successfully`,
         })
         router.push("/suppliers")
       } else {
-        throw new Error(result.error || `Failed to ${isEdit ? "update" : "create"} supplier`)
+        const errMsg = (result && 'error' in result && result.error) ? result.error : `Failed to ${isEdit ? "update" : "create"} supplier`
+        throw new Error(errMsg)
       }
     } catch (error: any) {
       console.error(`Error ${isEdit ? "updating" : "creating"} supplier:`, error)
@@ -533,7 +534,11 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                     const isExpiringSoon = expiryDate && expiryDate > today && expiryDate.getTime() - today.getTime() < 30 * 24 * 60 * 60 * 1000; // 30 days
                     
                     return (
-                      <div key={doc.id} className="grid grid-cols-5 gap-4 p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors items-center">
+                      <div 
+                        key={doc.id} 
+                        className="grid grid-cols-5 gap-4 p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors items-center cursor-pointer"
+                        onClick={() => router.push(`/suppliers/${supplier?.id}/documents/${doc.id}`)}
+                      >
                         <span className="text-blue-600 hover:underline">
                           {doc.title}
                         </span>
@@ -551,7 +556,7 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                             'No expiry'
                           )}
                         </span>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                           {loadingUsers ? (
                             <span className="text-sm text-gray-500">Loading users...</span>
                           ) : users.length === 0 ? (
@@ -565,7 +570,7 @@ export default function SupplierForm({ supplier, documents = [], isEdit = false 
                             />
                           )}
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="sm" asChild>
                             <Link href={`/suppliers/${supplier?.id}/documents/${doc.id}`}>Preview</Link>
                           </Button>

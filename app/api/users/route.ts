@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       prisma.user.count({ where }),
     ]);
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       users,
       pagination: {
         total: totalUsers,
@@ -67,6 +67,10 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(totalUsers / pageSize),
       },
     });
+    res.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.headers.set('Pragma', 'no-cache')
+    res.headers.set('Expires', '0')
+    return res
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 })

@@ -42,9 +42,9 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
   
   return (
     <div className="space-y-6">
-      <a href="/suppliers" className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition">
+      <a href={`/suppliers/${resolvedParams.id}`} className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition">
         <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to suppliers
+        Back to supplier
       </a>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">

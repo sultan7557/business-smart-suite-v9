@@ -13,6 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { createOrganizationalContext, updateOrganizationalContext } from "@/app/actions/organizational-context-actions"
 import { Loader } from "@/components/ui/loader"
+import { getObjectives } from "@/app/actions/objective-actions"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import ObjectiveForm from "@/app/objectives/objective-form"
 
 // Categories and subcategories
 const categories = [
@@ -31,18 +34,7 @@ const subCategories = [
   { value: "threat", label: "Threat" },
 ];
 
-// Sample objectives
-const availableObjectives = [
-  "Implement an integrated management system to ISO 9001, ISO 13485 and ISO 27001",
-  "Maintain ISO 27001 certification with NQA",
-  "Improve Use Of social Media Platforms",
-  "Transition to ISO27001 2022",
-  "New business",
-  "Improve monitoring of health and safety performance",
-  "Increase general awareness of product quality and data security",
-  "Maintain ISMS & Data Protection",
-  "Improve analysis of customer satisfaction",
-];
+// Real objectives will be fetched from Objective section
 
 interface OrganizationalContextFormProps {
   entry?: any; // The entry object if editing
@@ -53,6 +45,8 @@ interface OrganizationalContextFormProps {
 export default function OrganizationalContextForm({ entry, isDialog, onClose }: OrganizationalContextFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [objectives, setObjectives] = useState<any[]>([]);
+  const [isObjectiveDialogOpen, setIsObjectiveDialogOpen] = useState(false);
   
   // Form state
   const [category, setCategory] = useState(entry?.category || "");
@@ -64,6 +58,29 @@ export default function OrganizationalContextForm({ entry, isDialog, onClose }: 
   const [residualLikelihood, setResidualLikelihood] = useState(entry?.residualLikelihood || 1);
   const [residualSeverity, setResidualSeverity] = useState(entry?.residualSeverity || 1);
   const [selectedObjectives, setSelectedObjectives] = useState<string[]>(entry?.objectives || []);
+
+  // Load objectives from Objectives section
+  useEffect(() => {
+    let isMounted = true;
+    const loadObjectives = async () => {
+      try {
+        const result = await getObjectives(false, false);
+        if (isMounted) {
+          if (result.success && Array.isArray(result.data)) {
+            setObjectives(result.data);
+          } else {
+            console.error("Failed to load objectives", result.error);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading objectives", err);
+      }
+    };
+    loadObjectives();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +142,17 @@ export default function OrganizationalContextForm({ entry, isDialog, onClose }: 
       setSelectedObjectives([...selectedObjectives, objective]);
     } else {
       setSelectedObjectives(selectedObjectives.filter(obj => obj !== objective));
+    }
+  };
+
+  const refreshObjectives = async () => {
+    try {
+      const result = await getObjectives(false, false);
+      if (result.success && Array.isArray(result.data)) {
+        setObjectives(result.data);
+      }
+    } catch (err) {
+      console.error("Error refreshing objectives", err);
     }
   };
 
@@ -281,17 +309,45 @@ export default function OrganizationalContextForm({ entry, isDialog, onClose }: 
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Label>Linked Objectives</Label>
-                {availableObjectives.map((objective) => (
-                  <div key={objective} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`objective-${objective}`}
-                      checked={selectedObjectives.includes(objective)}
-                      onCheckedChange={(checked) => handleObjectiveChange(objective, checked as boolean)}
-                    />
-                    <Label htmlFor={`objective-${objective}`}>{objective}</Label>
-                  </div>
-                ))}
+                <div className="flex items-center justify-between">
+                  <Label>Linked Objectives</Label>
+                  <Dialog open={isObjectiveDialogOpen} onOpenChange={(open) => {
+                    setIsObjectiveDialogOpen(open)
+                    if (!open) {
+                      // After closing, refresh the list
+                      refreshObjectives();
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="outline" size="sm">Add Objective</Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Add New Objective</DialogTitle>
+                      </DialogHeader>
+                      <ObjectiveForm isDialog={true} onClose={() => setIsObjectiveDialogOpen(false)} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                <div className="space-y-2">
+                  {objectives.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No objectives found. Use "Add Objective" to create one.</div>
+                  ) : (
+                    objectives.map((obj) => {
+                      const label = obj.objective as string;
+                      return (
+                        <div key={obj.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`objective-${obj.id}`}
+                            checked={selectedObjectives.includes(label)}
+                            onCheckedChange={(checked) => handleObjectiveChange(label, checked as boolean)}
+                          />
+                          <Label htmlFor={`objective-${obj.id}`}>{label}</Label>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

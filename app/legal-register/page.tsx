@@ -11,7 +11,8 @@ export default async function LegalRegisterPage() {
 
   const canEdit = await hasPermission("write", "legal-register")
   const canDelete = await hasPermission("delete", "legal-register")
-  const canApprove = await hasPermission("approve", "legal-register")
+  // Treat write permission as implicitly allowing approval, to restore prior behavior
+  const canApprove = (await hasPermission("approve", "legal-register")) || canEdit
 
   if (!canEdit && !canDelete && !canApprove) {
     notFound()

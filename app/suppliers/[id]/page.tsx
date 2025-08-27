@@ -1,6 +1,7 @@
 // app/suppliers/[id]/page.tsx
 
 import { getSupplier } from "../../actions/supplier-actions"
+import { unstable_noStore as noStore } from 'next/cache'
 import SupplierForm from "../supplier-form"
 import { getUser } from "@/lib/auth"
 import { redirect } from "next/navigation"
@@ -12,6 +13,7 @@ type PageProps = {
 }
 
 export default async function EditSupplierPage({ params }: PageProps) {
+  noStore()
   const user = await getUser()
   
   if (!user) {
