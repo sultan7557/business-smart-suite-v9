@@ -183,6 +183,14 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
     return fileType.includes("pdf") || fileType.includes("image")
   }
 
+  function getNormalizedFileUrl(fileUrl: string): string {
+    // Normalize fileUrl for preview/download - use the API endpoint
+    if (fileUrl && !fileUrl.startsWith('/api/documents/download/')) {
+      return `/api/documents/download/${fileUrl.replace(/^\/uploads\//, '')}`;
+    }
+    return fileUrl;
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -306,7 +314,14 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(doc.fileUrl, "_blank")}
+                          onClick={() => {
+                            // Normalize fileUrl for download - use the API endpoint
+                            let downloadUrl = doc.fileUrl;
+                            if (downloadUrl && !downloadUrl.startsWith('/api/documents/download/')) {
+                              downloadUrl = `/api/documents/download/${downloadUrl.replace(/^\/uploads\//, '')}`;
+                            }
+                            window.open(downloadUrl, "_blank");
+                          }}
                         >
                           <Download className="w-4 h-4" />
                         </Button>
@@ -343,25 +358,36 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
               </div>
               {previewDoc.fileType.includes("pdf") ? (
                 <iframe
-                  src={previewDoc.fileUrl}
+                  src={getNormalizedFileUrl(previewDoc.fileUrl)}
                   className="w-full h-96 border rounded"
                   title={previewDoc.title}
                 />
               ) : previewDoc.fileType.includes("image") ? (
                 <img
-                  src={previewDoc.fileUrl}
+                  src={getNormalizedFileUrl(previewDoc.fileUrl)}
                   alt={previewDoc.title}
                   className="max-w-full max-h-96 object-contain mx-auto"
                 />
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  Preview not available for this file type
+                <div className="max-w-full max-h-96 object-contain mx-auto">
+                  <div className="text-center py-8 text-muted-foreground">
+                    Preview not available for this file type
+                  </div>
+                  <div className="text-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open(getNormalizedFileUrl(previewDoc.fileUrl), "_blank")}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Instead
+                    </Button>
+                  </div>
                 </div>
               )}
               <div className="flex justify-end gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => window.open(previewDoc.fileUrl, "_blank")}
+                  onClick={() => window.open(getNormalizedFileUrl(previewDoc.fileUrl), "_blank")}
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download
