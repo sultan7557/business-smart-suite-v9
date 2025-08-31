@@ -92,6 +92,7 @@ export default function DashboardPage() {
         { icon: <AlertOctagon className="h-5 w-5" />, label: "Risk Assessments", href: "/risk-assessments", description: "Risk evaluation and mitigation" },
         { icon: <AlertOctagon className="h-5 w-5" />, label: "COSHH", href: "/coshh", description: "Control of substances hazardous to health" },
         { icon: <FileCode className="h-5 w-5" />, label: "Technical File", href: "/technical-file", description: "Technical documentation" },
+        { icon: <AlertTriangle className="h-5 w-5" />, label: "IMS Aspects & Impacts", href: "/ims-aspects-impacts", description: "Environmental and H&S risk management" },
       ]
     },
     {
@@ -112,6 +113,7 @@ export default function DashboardPage() {
         { icon: <Scale className="h-5 w-5" />, label: "Legal Register", href: "/legal-register", description: "Legal requirements and compliance" },
         { icon: <Truck className="h-5 w-5" />, label: "Suppliers", href: "/suppliers", description: "Supplier management and evaluation" },
         { icon: <GraduationCap className="h-5 w-5" />, label: "Training", href: "/training", description: "Training records and development" },
+        { icon: <Zap className="h-5 w-5" />, label: "Energy Consumption", href: "/energy-consumption", description: "Track and analyze energy usage and environmental impact" },
       ]
     },
     {
@@ -266,6 +268,7 @@ export default function DashboardPage() {
                         ${sectionIndex === 1 ? 'hover:shadow-purple-500/20 hover:bg-gradient-to-br hover:from-slate-900/90 hover:via-purple-900/20 hover:to-slate-900/90' : ''}
                         ${sectionIndex === 2 ? 'hover:shadow-emerald-500/20 hover:bg-gradient-to-br hover:from-slate-900/90 hover:via-emerald-900/20 hover:to-slate-900/90' : ''}
                         ${sectionIndex === 3 ? 'hover:shadow-orange-500/20 hover:bg-gradient-to-br hover:from-slate-900/90 hover:via-orange-900/20 hover:to-slate-900/90' : ''}
+                        ${sectionIndex === 4 ? 'hover:shadow-emerald-500/20 hover:bg-gradient-to-br hover:from-slate-900/90 hover:via-emerald-900/20 hover:to-slate-900/90' : ''}
                         ${isCustomSection ? 'hover:shadow-gray-500/20 hover:bg-gradient-to-br hover:from-slate-900/90 hover:via-gray-900/20 hover:to-slate-900/90' : ''}
                       `}
                       style={{ minHeight: 'clamp(400px, 45vh, 450px)' }}
@@ -279,13 +282,15 @@ export default function DashboardPage() {
                           ${sectionIndex === 1 ? 'bg-purple-500' : ''}
                           ${sectionIndex === 2 ? 'bg-emerald-500' : ''}
                           ${sectionIndex === 3 ? 'bg-orange-500' : ''}
+                          ${sectionIndex === 4 ? 'bg-emerald-500' : ''}
                           ${isCustomSection ? 'bg-gray-500' : ''}
                         `}></div>
                         <div className={`absolute -bottom-16 -left-16 w-48 h-48 rounded-full opacity-5 blur-2xl
                           ${sectionIndex === 0 ? 'bg-blue-400' : ''}
                           ${sectionIndex === 1 ? 'bg-purple-400' : ''}
-                          ${sectionIndex === 2 ? 'bg-emerald-400' : ''}
+                          ${sectionIndex === 2 ? 'bg-emerald-500' : ''}
                           ${sectionIndex === 3 ? 'bg-orange-400' : ''}
+                          ${sectionIndex === 4 ? 'bg-emerald-400' : ''}
                           ${isCustomSection ? 'bg-gray-400' : ''}
                         `}></div>
                       </div>
@@ -298,6 +303,7 @@ export default function DashboardPage() {
                           ${sectionIndex === 1 ? 'bg-gradient-to-br from-purple-500/20 via-purple-400/15 to-transparent' : ''}
                           ${sectionIndex === 2 ? 'bg-gradient-to-br from-emerald-500/20 via-emerald-400/15 to-transparent' : ''}
                           ${sectionIndex === 3 ? 'bg-gradient-to-br from-orange-500/20 via-orange-400/15 to-transparent' : ''}
+                          ${sectionIndex === 4 ? 'bg-gradient-to-br from-emerald-500/20 via-emerald-400/15 to-transparent' : ''}
                           ${isCustomSection ? 'bg-gradient-to-br from-gray-500/20 via-gray-400/15 to-transparent' : ''}
                         `}></div>
                         
@@ -307,6 +313,7 @@ export default function DashboardPage() {
                           ${sectionIndex === 1 ? 'bg-gradient-to-bl from-purple-400 via-purple-300 to-transparent' : ''}
                           ${sectionIndex === 2 ? 'bg-gradient-to-bl from-emerald-400 via-emerald-300 to-transparent' : ''}
                           ${sectionIndex === 3 ? 'bg-gradient-to-bl from-orange-400 via-orange-300 to-transparent' : ''}
+                          ${sectionIndex === 4 ? 'bg-gradient-to-bl from-emerald-400 via-emerald-300 to-transparent' : ''}
                           ${isCustomSection ? 'bg-gradient-to-bl from-gray-400 via-gray-300 to-transparent' : ''}
                         `}></div>
                         
@@ -317,6 +324,7 @@ export default function DashboardPage() {
                             ${sectionIndex === 1 ? 'bg-gradient-to-br from-purple-600 via-purple-500 to-purple-400 shadow-2xl shadow-purple-500/40' : ''}
                             ${sectionIndex === 2 ? 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-emerald-400 shadow-2xl shadow-emerald-500/40' : ''}
                             ${sectionIndex === 3 ? 'bg-gradient-to-br from-orange-600 via-orange-500 to-orange-400 shadow-2xl shadow-orange-500/40' : ''}
+                            ${sectionIndex === 4 ? 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-emerald-400 shadow-2xl shadow-emerald-500/40' : ''}
                             ${isCustomSection ? 'bg-gradient-to-br from-gray-600 via-gray-500 to-gray-400 shadow-2xl shadow-gray-500/40' : ''}
                           `}>
                             <div className="w-12 h-12 lg:w-16 lg:h-16 text-white drop-shadow-lg">
@@ -353,6 +361,7 @@ export default function DashboardPage() {
                                   ${sectionIndex === 1 ? 'hover:shadow-purple-500/30 hover:bg-gradient-to-br hover:from-slate-800/80 hover:via-purple-800/30 hover:to-slate-800/80' : ''}
                                   ${sectionIndex === 2 ? 'hover:shadow-emerald-500/30 hover:bg-gradient-to-br hover:from-slate-800/80 hover:via-emerald-800/30 hover:to-slate-800/80' : ''}
                                   ${sectionIndex === 3 ? 'hover:shadow-orange-500/30 hover:bg-gradient-to-br hover:from-slate-800/80 hover:via-orange-800/30 hover:to-slate-800/80' : ''}
+                                  ${sectionIndex === 4 ? 'hover:shadow-emerald-500/30 hover:bg-gradient-to-br hover:from-slate-800/80 hover:via-emerald-800/30 hover:to-slate-800/80' : ''}
                                   ${isCustomSection ? 'hover:shadow-gray-500/30 hover:bg-gradient-to-br hover:from-slate-800/80 hover:via-gray-800/30 hover:to-slate-800/80' : ''}
                                 `}
                               >
@@ -362,6 +371,7 @@ export default function DashboardPage() {
                                   ${sectionIndex === 1 ? 'bg-gradient-to-b from-purple-400 to-purple-300' : ''}
                                   ${sectionIndex === 2 ? 'bg-gradient-to-b from-emerald-400 to-emerald-300' : ''}
                                   ${sectionIndex === 3 ? 'bg-gradient-to-b from-orange-400 to-orange-300' : ''}
+                                  ${sectionIndex === 4 ? 'bg-gradient-to-b from-emerald-400 to-emerald-300' : ''}
                                   ${isCustomSection ? 'bg-gradient-to-b from-gray-400 to-gray-300' : ''}
                                 `}></div>
                                 
@@ -371,6 +381,7 @@ export default function DashboardPage() {
                                   ${sectionIndex === 1 ? 'bg-gradient-to-bl from-purple-300 to-transparent' : ''}
                                   ${sectionIndex === 2 ? 'bg-gradient-to-bl from-emerald-300 to-transparent' : ''}
                                   ${sectionIndex === 3 ? 'bg-gradient-to-bl from-orange-300 to-transparent' : ''}
+                                  ${sectionIndex === 4 ? 'bg-gradient-to-bl from-emerald-300 to-transparent' : ''}
                                   ${isCustomSection ? 'bg-gradient-to-bl from-gray-300 to-transparent' : ''}
                                 `}></div>
                                 
@@ -381,6 +392,7 @@ export default function DashboardPage() {
                                     ${sectionIndex === 1 ? 'bg-gradient-to-br from-purple-600 via-purple-500 to-purple-400 text-white shadow-xl shadow-purple-500/40' : ''}
                                     ${sectionIndex === 2 ? 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-emerald-400 text-white shadow-xl shadow-emerald-500/40' : ''}
                                     ${sectionIndex === 3 ? 'bg-gradient-to-br from-orange-600 via-orange-500 to-orange-400 text-white shadow-xl shadow-orange-500/40' : ''}
+                                    ${sectionIndex === 4 ? 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-emerald-400 text-white shadow-xl shadow-emerald-500/40' : ''}
                                     ${isCustomSection ? 'bg-gradient-to-br from-gray-600 via-gray-500 to-gray-400 text-white shadow-xl shadow-gray-500/40' : ''}
                                   `}>
                                     <div className="w-12 h-12 lg:w-16 lg:h-16 drop-shadow-lg flex items-center justify-center">
@@ -400,6 +412,7 @@ export default function DashboardPage() {
                                     ${sectionIndex === 1 ? 'bg-gradient-to-br from-purple-400 via-purple-300 to-purple-200' : ''}
                                     ${sectionIndex === 2 ? 'bg-gradient-to-br from-emerald-400 via-emerald-300 to-emerald-200' : ''}
                                     ${sectionIndex === 3 ? 'bg-gradient-to-br from-orange-400 via-orange-300 to-orange-200' : ''}
+                                    ${sectionIndex === 4 ? 'bg-gradient-to-br from-emerald-400 via-emerald-300 to-emerald-200' : ''}
                                     ${isCustomSection ? 'bg-gradient-to-br from-gray-400 via-gray-300 to-gray-200' : ''}
                                   `}></div>
                                 </div>

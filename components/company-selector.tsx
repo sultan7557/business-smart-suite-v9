@@ -26,6 +26,7 @@ import {
   FileIcon as FileDescription,
   FileWarning,
   AlertOctagon,
+  AlertTriangle,
   FileCode,
   Calendar,
   Target,
@@ -35,6 +36,7 @@ import {
   Truck,
   GraduationCap,
   Sparkles,
+  Zap,
 } from "lucide-react"
 
 export default function CompanySelector() {
@@ -66,6 +68,7 @@ export default function CompanySelector() {
         { icon: <AlertOctagon className="h-4 w-4" />, label: "Risk Assessments", href: "/risk-assessments" },
         { icon: <AlertOctagon className="h-4 w-4" />, label: "COSHH", href: "/coshh" },
         { icon: <FileCode className="h-4 w-4" />, label: "Technical File", href: "/technical-file" },
+        { icon: <AlertTriangle className="h-4 w-4" />, label: "IMS Aspects & Impacts", href: "/ims-aspects-impacts" },
       ]
     },
     {
@@ -81,6 +84,7 @@ export default function CompanySelector() {
         { icon: <Scale className="h-4 w-4" />, label: "Legal Register", href: "/legal-register" },
         { icon: <Truck className="h-4 w-4" />, label: "Suppliers", href: "/suppliers" },
         { icon: <GraduationCap className="h-4 w-4" />, label: "Training", href: "/training" },
+        { icon: <Zap className="h-4 w-4" />, label: "Energy Consumption", href: "/energy-consumption" },
       ]
     },
     {

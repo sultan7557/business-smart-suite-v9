@@ -56,6 +56,23 @@ export async function POST(request: NextRequest) {
 
     console.log("Document created:", document)
 
+    // If this is an IMS Aspect Impact document, create audit log
+    if (entityType === "imsAspectImpact" && entityId) {
+      try {
+        await prisma.iMSAspectImpactDocumentAudit.create({
+          data: {
+            aspectImpactId: entityId,
+            documentId: document.id,
+            action: "UPLOAD",
+            userId: user.id as string,
+          },
+        })
+        console.log("IMS Aspect Impact document audit created")
+      } catch (error) {
+        console.error("Error creating IMS audit log:", error)
+      }
+    }
+
     // If this is a technical file document, create a new technical file version
     if (entityType === "technicalFile" && entityId) {
       const technicalFile = await prisma.technicalFile.findUnique({

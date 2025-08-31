@@ -131,6 +131,11 @@ model User {
   workInstructionsUpdated            WorkInstruction[]                   @relation("WorkInstructionUpdatedBy")
   workInstructionReviews             WorkInstructionReview[]
   workInstructionVersions            WorkInstructionVersion[]
+  imsAspectImpactsCreated           IMSAspectImpact[]                    @relation("IMSAspectImpactCreatedBy")
+  imsAspectImpactsUpdated           IMSAspectImpact[]                    @relation("IMSAspectImpactUpdatedBy")
+  imsAspectImpactReviews            IMSAspectImpactReview[]
+  imsAspectImpactVersions           IMSAspectImpactVersion[]
+  imsAspectImpactDocumentAudits     IMSAspectImpactDocumentAudit[]
 }
 
 model Role {
@@ -324,6 +329,7 @@ model Document {
   registerId                    String?
   riskAssessmentId              String?
   technicalFileId               String?
+  imsAspectImpactId             String?
   businessContinuityVersions    BusinessContinuityVersion[]
   coshhVersions                 COSHHVersion[]
   certificateVersions           CertificateVersion[]
@@ -347,6 +353,7 @@ model Document {
   technicalFile                 TechnicalFile?                 @relation(fields: [technicalFileId], references: [id])
   uploadedBy                    User                           @relation(fields: [uploadedById], references: [id])
   workInstruction               WorkInstruction?               @relation(fields: [workInstructionId], references: [id])
+  imsAspectImpact              IMSAspectImpact?               @relation(fields: [imsAspectImpactId], references: [id])
   versions                      DocumentVersion[]
   environmentalGuidanceVersions EnvironmentalGuidanceVersion[]
   formVersions                  FormVersion[]
@@ -359,8 +366,76 @@ model Document {
   registerVersions              RegisterVersion[]
   riskAssessmentVersions        RiskAssessmentVersion[]
   technicalFileVersions         TechnicalFileVersion[]
+  imsAspectImpactVersions       IMSAspectImpactVersion[]
   workInstructionVersions       WorkInstructionVersion[]
   audits                        Audit[]                        @relation("AuditToDocument")
+}
+
+model IMSAspectImpact {
+  id                       String   @id @default(cuid())
+  category                 String
+  activityProductService   String
+  aspects                  String[]
+  impacts                  String[]
+  initialLikelihood        Int      @default(0)
+  initialSeverity          Int      @default(0)
+  initialRiskLevel         Int      @default(0)
+  controlMeasures          String?
+  residualLikelihood       Int      @default(0)
+  residualSeverity         Int      @default(0)
+  residualRiskLevel        Int      @default(0)
+  commentsRecommendations  String?
+  controlObjectives        String[]
+  createdById              String
+  updatedById              String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  archived                 Boolean  @default(false)
+  createdBy                User     @relation("IMSAspectImpactCreatedBy", fields: [createdById], references: [id])
+  updatedBy                User?    @relation("IMSAspectImpactUpdatedBy", fields: [updatedById], references: [id])
+  documents                Document[]
+  reviews                  IMSAspectImpactReview[]
+  versions                 IMSAspectImpactVersion[]
+  documentAudits          IMSAspectImpactDocumentAudit[]
+}
+
+model IMSAspectImpactReview {
+  id                 String            @id @default(cuid())
+  aspectImpactId     String
+  reviewerName       String?
+  reviewDetails      String?
+  reviewDate         DateTime
+  nextReviewDate     DateTime?
+  createdById        String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  aspectImpact       IMSAspectImpact  @relation(fields: [aspectImpactId], references: [id], onDelete: Cascade)
+  createdBy          User              @relation(fields: [createdById], references: [id])
+}
+
+model IMSAspectImpactVersion {
+  id                 String            @id @default(cuid())
+  aspectImpactId     String
+  version            String
+  reviewDate         DateTime
+  notes              String?
+  createdAt          DateTime          @default(now())
+  createdById        String
+  documentId         String?
+  aspectImpact       IMSAspectImpact  @relation(fields: [aspectImpactId], references: [id], onDelete: Cascade)
+  createdBy          User              @relation(fields: [createdById], references: [id])
+  document           Document?         @relation(fields: [documentId], references: [id])
+}
+
+model IMSAspectImpactDocumentAudit {
+  id               String   @id @default(cuid())
+  aspectImpactId   String
+  documentId       String
+  action           String
+  userId           String
+  createdAt        DateTime @default(now())
+  aspectImpact     IMSAspectImpact @relation(fields: [aspectImpactId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id])
 }
 
 model DocumentVersion {
@@ -2127,4 +2202,78 @@ enum InviteStatus {
   ACCEPTED
   EXPIRED
   CANCELLED
+}
+
+// Energy Consumption Models
+model EnergyBaseline {
+  id          String   @id @default(cuid())
+  organizationId String
+  year        Int
+  month       Int      // 1-12
+  electricityMeter1 Float
+  electricityMeter2 Float
+  gasMeter1   Float
+  gasMeter2   Float
+  water1      Float
+  water2      Float
+  paper       Float
+  fuel        Float
+  generalWaste1 Float
+  generalWaste2 Float
+  recycledWaste1 Float
+  recycledWaste2 Float
+  scrapMetal  Float
+  foodWaste1  Float
+  foodWaste2  Float
+  wood        Float
+  cardBales   Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([organizationId, year, month])
+}
+
+model EnergyYear {
+  id          String   @id @default(cuid())
+  organizationId String
+  year        Int
+  name        String   // "Year 1", "Year 2", etc.
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  monthlyData EnergyMonthlyData[]
+  
+  @@unique([organizationId, year])
+}
+
+model EnergyMonthlyData {
+  id          String   @id @default(cuid())
+  energyYearId String
+  month       Int      // 1-12
+  electricityMeter1 Float
+  electricityMeter2 Float
+  gasMeter1   Float
+  gasMeter2   Float
+  water1      Float
+  water2      Float
+  paper       Float
+  fuel        Float
+  generalWaste1 Float
+  generalWaste2 Float
+  recycledWaste1 Float
+  recycledWaste2 Float
+  scrapMetal  Float
+  foodWaste1  Float
+  foodWaste2  Float
+  wood        Float
+  cardBales   Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  energyYear  EnergyYear @relation(fields: [energyYearId], references: [id])
+  
+  @@unique([energyYearId, month])
 }
