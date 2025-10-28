@@ -95,7 +95,7 @@ async function main() {
           }
         })
 
-        // Create group permissions with the new systemId
+        // Create group permissions with the new systemId and robust system
         for (const roleId of validRoleIds) {
           await prisma.groupPermission.create({
             data: {
