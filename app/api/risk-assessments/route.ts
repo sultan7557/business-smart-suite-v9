@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { withAuth, getUser } from "@/lib/auth"
+import { revalidatePath } from "next/cache"
 
 export const GET = withAuth(async (request: NextRequest) => {
   try {
@@ -120,6 +121,9 @@ export const PUT = withAuth(async (request: NextRequest) => {
   try {
     const body = await request.json()
     const user = await getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     const { ids, action, data } = body
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -170,16 +174,20 @@ export const PUT = withAuth(async (request: NextRequest) => {
       data: updateData,
     })
 
-    return NextResponse.json({
-      message: `Successfully ${action}d ${updatedRiskAssessments.count} risk assessment(s, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "public, max-age=300",
-        },
-      })`,
-      count: updatedRiskAssessments.count,
-    })
+    revalidatePath("/risk-assessments")
+
+          return NextResponse.json({
+            message: `Successfully ${action}d ${updatedRiskAssessments.count} risk assessment(s)`,
+            count: updatedRiskAssessments.count,
+          }, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+            },
+          })
   } catch (error) {
     console.error("Error bulk updating risk assessments:", error)
     return NextResponse.json({ error: "Failed to update risk assessments" }, { status: 500 })
@@ -205,15 +213,17 @@ export const DELETE = withAuth(async (request: NextRequest) => {
         },
       })
 
+      revalidatePath("/risk-assessments")
+
       return NextResponse.json({
-        message: `Successfully deleted ${deletedRiskAssessments.count} risk assessment(s, {
+        message: `Successfully deleted ${deletedRiskAssessments.count} risk assessment(s) permanently`,
+        count: deletedRiskAssessments.count,
+      }, {
         status: 200,
         headers: {
           "Content-Type": "application/json",
           "Cache-Control": "public, max-age=300",
         },
-      }) permanently`,
-        count: deletedRiskAssessments.count,
       })
     } else {
       // Soft delete - archive the risk assessments
@@ -228,15 +238,17 @@ export const DELETE = withAuth(async (request: NextRequest) => {
         },
       })
 
+      revalidatePath("/risk-assessments")
+
       return NextResponse.json({
-        message: `Successfully archived ${archivedRiskAssessments.count} risk assessment(s, {
+        message: `Successfully archived ${archivedRiskAssessments.count} risk assessment(s)`,
+        count: archivedRiskAssessments.count,
+      }, {
         status: 200,
         headers: {
           "Content-Type": "application/json",
           "Cache-Control": "public, max-age=300",
         },
-      })`,
-        count: archivedRiskAssessments.count,
       })
     }
   } catch (error) {

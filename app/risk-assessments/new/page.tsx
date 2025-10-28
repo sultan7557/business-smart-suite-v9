@@ -124,7 +124,13 @@ async function NewRiskAssessmentPage() {
         try {
           await prisma.whoMayBeHarmed.create({
             data: {
-              ...whoMayBeHarmed,
+              employees: whoMayBeHarmed.employees || false,
+              contractors: whoMayBeHarmed.contractors || false,
+              generalPublic: whoMayBeHarmed.generalPublic || false,
+              visitors: whoMayBeHarmed.visitors || false,
+              environment: whoMayBeHarmed.environment || false,
+              others: whoMayBeHarmed.others || false,
+              othersDescription: whoMayBeHarmed.othersDescription || null,
               riskAssessmentId: riskAssessment.id
             }
           })
@@ -138,7 +144,17 @@ async function NewRiskAssessmentPage() {
         try {
           await prisma.ppeRequirements.create({
             data: {
-              ...ppeRequirements,
+              safetyBoots: ppeRequirements.safetyBoots || false,
+              gloves: ppeRequirements.gloves || false,
+              highVisTop: ppeRequirements.highVisTop || false,
+              highVisTrousers: ppeRequirements.highVisTrousers || false,
+              overalls: ppeRequirements.overalls || false,
+              safetyHelmet: ppeRequirements.safetyHelmet || false,
+              earDefenders: ppeRequirements.earDefenders || false,
+              safetyGoggles: ppeRequirements.safetyGoggles || false,
+              safetyGlasses: ppeRequirements.safetyGlasses || false,
+              others: ppeRequirements.others || false,
+              othersDescription: ppeRequirements.othersDescription || null,
               riskAssessmentId: riskAssessment.id
             }
           })
@@ -152,7 +168,13 @@ async function NewRiskAssessmentPage() {
         try {
           await prisma.assessmentDetail.createMany({
             data: assessmentDetails.map((detail: any, index: number) => ({
-              ...detail,
+              hazardIdentified: detail.hazardIdentified,
+              currentControls: detail.currentControls,
+              severity: detail.severity,
+              likelihood: detail.likelihood,
+              riskFactor: detail.riskFactor,
+              additionalControls: detail.additionalControls,
+              residualRisk: detail.residualRisk,
               riskAssessmentId: riskAssessment.id,
               order: index + 1
             }))
@@ -166,6 +188,10 @@ async function NewRiskAssessmentPage() {
       console.log("Risk assessment created successfully:", riskAssessment.id)
       redirect(`/risk-assessments/${riskAssessment.id}`)
     } catch (error) {
+      // Don't log NEXT_REDIRECT as an error - it's expected behavior
+      if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+        throw error // Re-throw redirect errors without logging
+      }
       console.error("Error creating risk assessment:", error)
       throw error
     }

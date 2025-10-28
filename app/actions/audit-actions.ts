@@ -405,7 +405,7 @@ export async function toggleAuditArchive(id: string) {
       return { success: false, error: "Audit not found" }
     }
 
-    await prisma.audit.update({
+    const updatedAudit = await prisma.audit.update({
       where: { id },
       data: {
         archived: !audit.archived,
@@ -413,10 +413,15 @@ export async function toggleAuditArchive(id: string) {
       },
     })
 
+    // Revalidate all relevant paths
     revalidatePath("/audit-schedule")
-    return { success: true }
+    revalidatePath(`/audit-schedule/${id}`)
+    revalidatePath(`/audit-schedule/${id}/edit`)
+    
+    console.log(`Audit ${id} ${updatedAudit.archived ? 'archived' : 'unarchived'} successfully`)
+    return { success: true, archived: updatedAudit.archived }
   } catch (error) {
     console.error("Error toggling audit archive status:", error)
-    return { success: false, error: "Failed to update audit archive status" }
+    return { success: false, error: `Failed to update audit archive status: ${error}` }
   }
 }

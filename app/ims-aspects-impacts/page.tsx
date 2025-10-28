@@ -94,9 +94,16 @@ export default function IMSAspectsImpactsPage() {
       <main className="flex-1 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">IMS Aspects & Impacts Register</h1>
-          <Link href="/ims-aspects-impacts/new">
-            <Button>Add risk</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <a href="/api/ims-aspects-impacts/pdf" target="_blank">
+                Download Complete PDF
+              </a>
+            </Button>
+            <Link href="/ims-aspects-impacts/new">
+              <Button>Add risk</Button>
+            </Link>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-4">
@@ -156,7 +163,7 @@ export default function IMSAspectsImpactsPage() {
                     <tr><td className="p-4" colSpan={7}>No records</td></tr>
                   )}
                   {!loading && filtered.map((it) => (
-                    <tr key={it.id} className="border-t">
+                    <tr key={it.id} className="border-t hover:bg-muted/50 cursor-pointer" onClick={() => router.push(`/ims-aspects-impacts/${it.id}`)}>
                       <td className="p-2 align-top">{it.category}</td>
                       <td className="p-2 align-top">{it.activityProductService}</td>
                       <td className="p-2 whitespace-pre-wrap align-top">
@@ -177,7 +184,7 @@ export default function IMSAspectsImpactsPage() {
                         <div className={`inline-block px-2 py-1 rounded ${riskBoxColor(it.residualRiskLevel)}`}>{it.residualRiskLevel}</div>
                       </td>
                       <td className="p-2 align-top">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                           <Link href={`/ims-aspects-impacts/${it.id}`}><Button variant="outline" size="icon"><Pencil className="w-4 h-4" /></Button></Link>
                           <Button 
                             variant="outline" 

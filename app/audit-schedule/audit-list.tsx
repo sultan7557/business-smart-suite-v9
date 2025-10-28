@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Pencil, Trash2, Archive, RotateCcw, FileText } from "lucide-react"
+import { Pencil, Trash2, Archive, RotateCcw, FileText, Eye } from "lucide-react"
 import Link from "next/link"
 import { formatDate } from "@/lib/utils"
 import { deleteAudit, toggleAuditArchive } from "@/app/actions/audit-actions"
@@ -40,13 +40,19 @@ export default function AuditList({ audits, canEdit }: AuditListProps) {
   const handleArchive = async (id: string, currentArchived: boolean) => {
     setIsArchiving(id)
     try {
+      // Add a small delay to prevent rapid clicking
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       const result = await toggleAuditArchive(id)
       if (result.success) {
         toast.success(`Audit ${currentArchived ? "unarchived" : "archived"} successfully`)
+        // Force a page refresh to ensure UI updates
+        window.location.reload()
       } else {
         toast.error(result.error || `Failed to ${currentArchived ? "unarchive" : "archive"} audit`)
       }
     } catch (error) {
+      console.error("Archive error:", error)
       toast.error(`An error occurred while ${currentArchived ? "unarchiving" : "archiving"} the audit`)
     } finally {
       setIsArchiving(null)
@@ -171,6 +177,16 @@ export default function AuditList({ audits, canEdit }: AuditListProps) {
                     ) : (
                       <Archive className="h-4 w-4" />
                     )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    asChild
+                    className="h-8 w-8 bg-green-200 hover:bg-green-300 dark:bg-green-800 dark:hover:bg-green-700"
+                  >
+                    <Link href={`/audit-schedule/${audit.id}`}>
+                      <Eye className="h-4 w-4" />
+                    </Link>
                   </Button>
                   <Button
                     variant="outline"

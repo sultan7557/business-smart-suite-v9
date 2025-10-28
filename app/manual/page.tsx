@@ -80,7 +80,22 @@ async function ManualPage(props: any) {
   const categoriesWithArchivedManuals = activeCategories.filter((category) => category.manuals.length > 0)
 
   // Combine archived categories with categories that have archived manuals
-  const allArchivedCategories = [...archivedCategories, ...categoriesWithArchivedManuals]
+  // Use a Map to ensure no duplicate categories
+  const archivedCategoriesMap = new Map()
+  
+  // Add fully archived categories
+  archivedCategories.forEach(category => {
+    archivedCategoriesMap.set(category.id, category)
+  })
+  
+  // Add active categories that have archived manuals
+  categoriesWithArchivedManuals.forEach(category => {
+    if (!archivedCategoriesMap.has(category.id)) {
+      archivedCategoriesMap.set(category.id, category)
+    }
+  })
+  
+  const allArchivedCategories = Array.from(archivedCategoriesMap.values())
 
   return (
     <ManualsClient

@@ -12,23 +12,25 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import DocumentManager from "../components/document-manager"
+import ReviewManager from "../components/review-manager"
 
 const CATEGORIES = ["Buildings & Utilities","Goods In","Offices","Product Lifecycle","Raw Materials","Waste"]
 const ASPECTS = [
-  "Emissions to air/Pollution to land/Use of materials/natural resources",
+  "Emissions to air",
+  "Pollution of land", 
+  "Discharge of water",
+  "Use of materials / natural resources",
   "Solid waste management",
-  "Deforestation/depletion of natural resources/Air pollution (noise and fumes)",
-  "Land contamination",
-  "Water pollution/Fauna/Aquatics",
-  "Harm to Flora/Fauna/Aquatics",
+  "Hazardous waste"
 ]
+
 const IMPACTS = [
-  "Emissions to air/Pollution to land/Use of materials/natural resources",
-  "Solid waste management",
-  "Deforestation/depletion of natural resources/Air pollution (noise and fumes)",
-  "Land contamination",
-  "Water pollution/Fauna/Aquatics",
-  "Harm to Flora/Fauna/Aquatics",
+  "Deforestation, depletion of natural resources",
+  "Air pollution (noise and fumes)",
+  "Global warming",
+  "Land contamination", 
+  "Water pollution",
+  "Harm to flora/fauna/aquatics"
 ]
 const CONTROL_OBJECTIVES = [
   "Minimizing environmental impact - Net Zero",
@@ -58,6 +60,15 @@ export default function EditIMSAspectImpactPage() {
   const [comments, setComments] = useState<string>("")
   const [objectives, setObjectives] = useState<string[]>([])
   const [showUpload, setShowUpload] = useState<boolean>(false)
+  const [customAspect, setCustomAspect] = useState("")
+  const [customImpact, setCustomImpact] = useState("")
+  const [showCustomAspect, setShowCustomAspect] = useState(false)
+  const [showCustomImpact, setShowCustomImpact] = useState(false)
+  const [reviews, setReviews] = useState<any[]>([])
+  const [showReviews, setShowReviews] = useState(false)
+  const [version, setVersion] = useState("1.0")
+  const [showVersionDialog, setShowVersionDialog] = useState(false)
+  const [reviewDate, setReviewDate] = useState(new Date().toISOString().split("T")[0])
 
   const residualRisk = useMemo(() => (residualLikelihood * residualSeverity) || 0, [residualLikelihood, residualSeverity])
   const initialRisk = useMemo(() => (initialLikelihood * initialSeverity) || 0, [initialLikelihood, initialSeverity])
@@ -78,6 +89,11 @@ export default function EditIMSAspectImpactPage() {
       setComments(data.commentsRecommendations || "")
       setObjectives(data.controlObjectives || [])
     }).finally(() => setLoading(false))
+    
+    // Load reviews
+    fetch(`/api/ims-aspects-impacts/${id}/reviews`).then(r => r.json()).then(({ data }) => {
+      setReviews(data || [])
+    }).catch(() => setReviews([]))
   }, [id, isNew])
 
   useEffect(() => {
@@ -86,6 +102,22 @@ export default function EditIMSAspectImpactPage() {
 
   function toggle(list: string[], value: string, setter: (v: string[]) => void) {
     setter(list.includes(value) ? list.filter(v => v !== value) : [...list, value])
+  }
+
+  function addCustomAspect() {
+    if (customAspect.trim() && !ASPECTS.includes(customAspect.trim())) {
+      setAspects([...aspects, customAspect.trim()])
+      setCustomAspect("")
+      setShowCustomAspect(false)
+    }
+  }
+
+  function addCustomImpact() {
+    if (customImpact.trim() && !IMPACTS.includes(customImpact.trim())) {
+      setImpacts([...impacts, customImpact.trim()])
+      setCustomImpact("")
+      setShowCustomImpact(false)
+    }
   }
 
   async function onSave(e: React.FormEvent) {
@@ -103,6 +135,8 @@ export default function EditIMSAspectImpactPage() {
       residualSeverity,
       commentsRecommendations: comments,
       controlObjectives: objectives,
+      version,
+      reviewDate,
     }
     const res = await fetch(isNew ? "/api/ims-aspects-impacts" : `/api/ims-aspects-impacts/${id}` , {
       method: isNew ? "POST" : "PUT",
@@ -139,6 +173,26 @@ export default function EditIMSAspectImpactPage() {
           <Input value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Describe the activity, product, or service" />
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Version</Label>
+            <div className="flex gap-2">
+              <Input value={version} onChange={(e) => setVersion(e.target.value)} placeholder="1.0" />
+              <Button type="button" variant="outline" onClick={() => setShowVersionDialog(true)}>
+                Upscale Version
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Review Date</Label>
+            <Input 
+              type="date" 
+              value={reviewDate} 
+              onChange={(e) => setReviewDate(e.target.value)}
+            />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label>Aspects</Label>
@@ -149,6 +203,31 @@ export default function EditIMSAspectImpactPage() {
                   <span className="text-sm">{a}</span>
                 </label>
               ))}
+              {aspects.filter(a => !ASPECTS.includes(a)).map((a) => (
+                <label key={a} className="flex items-center gap-2">
+                  <Checkbox checked={aspects.includes(a)} onCheckedChange={() => toggle(aspects, a, setAspects)} />
+                  <span className="text-sm text-blue-600">{a}</span>
+                </label>
+              ))}
+              {!showCustomAspect ? (
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowCustomAspect(true)}>
+                  + Add Custom Aspect
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Enter custom aspect" 
+                    value={customAspect} 
+                    onChange={(e) => setCustomAspect(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addCustomAspect()}
+                  />
+                  <Button type="button" size="sm" onClick={addCustomAspect}>Add</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => {
+                    setShowCustomAspect(false)
+                    setCustomAspect("")
+                  }}>Cancel</Button>
+                </div>
+              )}
             </div>
           </div>
           <div>
@@ -160,6 +239,31 @@ export default function EditIMSAspectImpactPage() {
                   <span className="text-sm">{i}</span>
                 </label>
               ))}
+              {impacts.filter(i => !IMPACTS.includes(i)).map((i) => (
+                <label key={i} className="flex items-center gap-2">
+                  <Checkbox checked={impacts.includes(i)} onCheckedChange={() => toggle(impacts, i, setImpacts)} />
+                  <span className="text-sm text-blue-600">{i}</span>
+                </label>
+              ))}
+              {!showCustomImpact ? (
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowCustomImpact(true)}>
+                  + Add Custom Impact
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Enter custom impact" 
+                    value={customImpact} 
+                    onChange={(e) => setCustomImpact(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addCustomImpact()}
+                  />
+                  <Button type="button" size="sm" onClick={addCustomImpact}>Add</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => {
+                    setShowCustomImpact(false)
+                    setCustomImpact("")
+                  }}>Cancel</Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -236,8 +340,14 @@ export default function EditIMSAspectImpactPage() {
             Documents can only be uploaded against existing items. Once you have saved this new item you will be able to upload documents.
           </div>
         ) : (
-          <div>
+          <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={() => setShowUpload(true)}>Manage documents</Button>
+            <Button type="button" variant="outline" onClick={() => setShowReviews(true)}>Manage reviews</Button>
+            <Button type="button" variant="outline" asChild>
+              <a href={`/api/ims-aspects-impacts/${id}/pdf`} target="_blank">
+                Download PDF
+              </a>
+            </Button>
           </div>
         )}
 
@@ -258,6 +368,19 @@ export default function EditIMSAspectImpactPage() {
               onDocumentsChange={() => setShowUpload(false)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showReviews} onOpenChange={setShowReviews}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Manage Reviews</DialogTitle>
+          </DialogHeader>
+          <ReviewManager 
+            aspectImpactId={id} 
+            reviews={reviews} 
+            onReviewsChange={setReviews} 
+          />
         </DialogContent>
       </Dialog>
     </div>

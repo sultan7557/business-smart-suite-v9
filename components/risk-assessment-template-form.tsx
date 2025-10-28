@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import { clearApiCache } from "@/lib/cache-utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -114,8 +115,98 @@ export default function RiskAssessmentTemplateForm({
     ]
   )
 
+  // Sync state with props when riskAssessment changes
+  useEffect(() => {
+    if (riskAssessment) {
+      console.log("Syncing risk assessment data:", {
+        hasAssessmentDetails: !!riskAssessment.assessmentDetails,
+        assessmentDetailsLength: riskAssessment.assessmentDetails?.length || 0,
+        assessmentDetails: riskAssessment.assessmentDetails
+      })
+
+      setBasicData({
+        title: riskAssessment.title || "",
+        version: riskAssessment.version || "1.0",
+        reviewDate: riskAssessment.reviewDate ? new Date(riskAssessment.reviewDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+        nextReviewDate: riskAssessment.nextReviewDate ? new Date(riskAssessment.nextReviewDate).toISOString().split("T")[0] : "",
+        department: riskAssessment.department || "",
+        categoryId: riskAssessment.categoryId || "",
+        additionalRequirements: riskAssessment.additionalRequirements || ""
+      })
+
+      setWhoMayBeHarmed({
+        employees: riskAssessment.whoMayBeHarmed?.employees || false,
+        contractors: riskAssessment.whoMayBeHarmed?.contractors || false,
+        generalPublic: riskAssessment.whoMayBeHarmed?.generalPublic || false,
+        visitors: riskAssessment.whoMayBeHarmed?.visitors || false,
+        environment: riskAssessment.whoMayBeHarmed?.environment || false,
+        others: riskAssessment.whoMayBeHarmed?.others || false,
+        othersDescription: riskAssessment.whoMayBeHarmed?.othersDescription || ""
+      })
+
+      setPpeRequirements({
+        safetyBoots: riskAssessment.ppeRequirements?.safetyBoots || false,
+        gloves: riskAssessment.ppeRequirements?.gloves || false,
+        highVisTop: riskAssessment.ppeRequirements?.highVisTop || false,
+        highVisTrousers: riskAssessment.ppeRequirements?.highVisTrousers || false,
+        overalls: riskAssessment.ppeRequirements?.overalls || false,
+        safetyHelmet: riskAssessment.ppeRequirements?.safetyHelmet || false,
+        earDefenders: riskAssessment.ppeRequirements?.earDefenders || false,
+        safetyGoggles: riskAssessment.ppeRequirements?.safetyGoggles || false,
+        safetyGlasses: riskAssessment.ppeRequirements?.safetyGlasses || false,
+        others: riskAssessment.ppeRequirements?.others || false,
+        othersDescription: riskAssessment.ppeRequirements?.othersDescription || ""
+      })
+
+      // Ensure assessmentDetails has proper structure with IDs
+      const detailsWithIds = riskAssessment.assessmentDetails?.map((detail: any, index: number) => ({
+        id: detail.id || `detail-${index + 1}`,
+        hazardIdentified: detail.hazardIdentified || "",
+        currentControls: detail.currentControls || "",
+        severity: detail.severity || 3,
+        likelihood: detail.likelihood || 3,
+        riskFactor: detail.riskFactor || 9,
+        additionalControls: detail.additionalControls || "",
+        residualRisk: detail.residualRisk || "M"
+      })) || [
+        {
+          id: "1",
+          hazardIdentified: "",
+          currentControls: "",
+          severity: 3,
+          likelihood: 3,
+          riskFactor: 9,
+          additionalControls: "",
+          residualRisk: "M"
+        }
+      ]
+
+      setAssessmentDetails(detailsWithIds)
+      console.log("Set assessment details:", detailsWithIds)
+    }
+  }, [riskAssessment?.id, riskAssessment?.assessmentDetails])
+
   const handleBasicDataChange = (field: string, value: any) => {
     setBasicData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleEdit = () => {
+    setIsEditing(true)
+    // Force refresh of assessment details when entering edit mode
+    if (riskAssessment?.assessmentDetails) {
+      const detailsWithIds = riskAssessment.assessmentDetails.map((detail: any, index: number) => ({
+        id: detail.id || `detail-${index + 1}`,
+        hazardIdentified: detail.hazardIdentified || "",
+        currentControls: detail.currentControls || "",
+        severity: detail.severity || 3,
+        likelihood: detail.likelihood || 3,
+        riskFactor: detail.riskFactor || 9,
+        additionalControls: detail.additionalControls || "",
+        residualRisk: detail.residualRisk || "M"
+      }))
+      setAssessmentDetails(detailsWithIds)
+      console.log("Force refreshed assessment details on edit:", detailsWithIds)
+    }
   }
 
   const handleWhoMayBeHarmedChange = (field: keyof WhoMayBeHarmed, value: boolean | string) => {
@@ -171,6 +262,9 @@ export default function RiskAssessmentTemplateForm({
   const handleSave = async () => {
     if (!canEdit) return
 
+    // Clear API cache before saving to prevent stale data
+    await clearApiCache()
+
     // Validate required fields
     if (!basicData.title || !basicData.categoryId || !basicData.version || !basicData.reviewDate || !basicData.department) {
       toast({
@@ -207,13 +301,36 @@ export default function RiskAssessmentTemplateForm({
     try {
       const formData = {
         ...basicData,
-        whoMayBeHarmed,
-        ppeRequirements,
+        whoMayBeHarmed: {
+          employees: whoMayBeHarmed.employees,
+          contractors: whoMayBeHarmed.contractors,
+          generalPublic: whoMayBeHarmed.generalPublic,
+          visitors: whoMayBeHarmed.visitors,
+          environment: whoMayBeHarmed.environment,
+          others: whoMayBeHarmed.others,
+          othersDescription: whoMayBeHarmed.othersDescription
+        },
+        ppeRequirements: {
+          safetyBoots: ppeRequirements.safetyBoots,
+          gloves: ppeRequirements.gloves,
+          highVisTop: ppeRequirements.highVisTop,
+          highVisTrousers: ppeRequirements.highVisTrousers,
+          overalls: ppeRequirements.overalls,
+          safetyHelmet: ppeRequirements.safetyHelmet,
+          earDefenders: ppeRequirements.earDefenders,
+          safetyGoggles: ppeRequirements.safetyGoggles,
+          safetyGlasses: ppeRequirements.safetyGlasses,
+          others: ppeRequirements.others,
+          othersDescription: ppeRequirements.othersDescription
+        },
         assessmentDetails: assessmentDetails.map(detail => ({
-          ...detail,
           hazardIdentified: detail.hazardIdentified.trim(),
           currentControls: detail.currentControls.trim(),
-          additionalControls: detail.additionalControls?.trim() || ""
+          severity: detail.severity,
+          likelihood: detail.likelihood,
+          riskFactor: detail.riskFactor,
+          additionalControls: detail.additionalControls?.trim() || "",
+          residualRisk: detail.residualRisk
         }))
       }
 
@@ -275,7 +392,7 @@ export default function RiskAssessmentTemplateForm({
           <CardTitle className="flex items-center justify-between">
             Basic Information
             {canEdit && !isEditing && (
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+              <Button variant="outline" size="sm" onClick={handleEdit}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
@@ -657,6 +774,7 @@ export default function RiskAssessmentTemplateForm({
                   <th className="border border-gray-300 p-2 text-left">Risk Factor</th>
                   <th className="border border-gray-300 p-2 text-left">Additional Controls/Recommendations</th>
                   <th className="border border-gray-300 p-2 text-left">Residual Risk</th>
+                  <th className="border border-gray-300 p-2 text-left">Residual Risk Score</th>
                   {isEditing && (
                     <th className="border border-gray-300 p-2 text-left">Actions</th>
                   )}
@@ -750,6 +868,21 @@ export default function RiskAssessmentTemplateForm({
                         {detail.residualRisk}
                       </span>
                     </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      <div className="flex flex-col items-center">
+                        <span className={`font-bold text-lg ${
+                          detail.residualRisk === 'H' ? 'text-red-600' : 
+                          detail.residualRisk === 'M' ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                          {detail.residualRisk === 'H' ? '17+' : 
+                           detail.residualRisk === 'M' ? '8-16' : '1-7'}
+                        </span>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {detail.residualRisk === 'H' ? 'High Risk' : 
+                           detail.residualRisk === 'M' ? 'Medium Risk' : 'Low Risk'}
+                        </div>
+                      </div>
+                    </td>
                     {isEditing && (
                       <td className="border border-gray-300 p-2">
                         {assessmentDetails.length > 1 && (
@@ -802,7 +935,7 @@ export default function RiskAssessmentTemplateForm({
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)}>
+            <Button onClick={handleEdit}>
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>

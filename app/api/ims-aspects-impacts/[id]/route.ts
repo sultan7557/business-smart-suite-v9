@@ -36,6 +36,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updatedById: user.id,
     },
   })
+
+  // Create new version if version and reviewDate are provided
+  if (body.version && body.reviewDate) {
+    await prisma.iMSAspectImpactVersion.create({
+      data: {
+        aspectImpactId: id,
+        version: body.version,
+        reviewDate: new Date(body.reviewDate),
+        notes: "Version update",
+        createdById: user.id,
+      },
+    })
+  }
+
   return NextResponse.json({ data: updated })
 }
 

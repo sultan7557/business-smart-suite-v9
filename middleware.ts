@@ -84,7 +84,31 @@ export async function middleware(request: NextRequest) {
 
   // If authenticated, proceed. Permission checks will be handled in API routes.
   console.log(`Middleware: Authentication successful for path: ${request.nextUrl.pathname}. Proceeding.`);
-  return NextResponse.next()
+  
+  // Add production-ready cache management headers
+  const response = NextResponse.next()
+  
+  // Add cache-busting headers for API routes
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+    response.headers.set("Pragma", "no-cache")
+    response.headers.set("Expires", "0")
+    response.headers.set("Surrogate-Control", "no-store")
+  }
+  
+  // Add cache-busting headers for pages in development
+  if (process.env.NODE_ENV === "development") {
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate")
+    response.headers.set("Pragma", "no-cache")
+    response.headers.set("Expires", "0")
+  }
+  
+  // Add security headers
+  response.headers.set("X-Content-Type-Options", "nosniff")
+  response.headers.set("X-Frame-Options", "SAMEORIGIN")
+  response.headers.set("X-XSS-Protection", "1; mode=block")
+  
+  return response
 }
 
 // Only run middleware on specific paths

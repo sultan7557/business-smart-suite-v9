@@ -161,6 +161,7 @@ export default async function ViewRiskAssessmentPage({ params }: ViewPageProps) 
           <Card>
             <CardContent className="p-6">
               <RiskAssessmentTemplateForm
+                key={riskAssessment.id}
                 riskAssessment={riskAssessment}
                 canEdit={canEdit}
                 categories={[riskAssessment.category]}
@@ -287,19 +288,49 @@ export default async function ViewRiskAssessmentPage({ params }: ViewPageProps) 
         </TabsContent>
 
         <TabsContent value="download" className="border p-4">
-          {latestDocument ? (
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <p className="text-gray-500">Download the latest version of this risk assessment.</p>
-              <Button asChild>
-                <a href={`/api/documents/download/${latestDocument.fileUrl}`} download>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Document
-                </a>
-              </Button>
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-4">Download Risk Assessment</h3>
             </div>
-          ) : (
-            <p className="text-gray-500">No document available to download.</p>
-          )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* PDF Download */}
+              <div className="border rounded-lg p-6 text-center">
+                <h4 className="text-md font-semibold mb-2">Generate PDF Report</h4>
+                <p className="text-gray-600 mb-4">Download a comprehensive PDF report of this risk assessment with all details.</p>
+                <Button asChild className="w-full">
+                  <a href={`/api/risk-assessments/${riskAssessmentId}/pdf`} target="_blank">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF Report
+                  </a>
+                </Button>
+              </div>
+
+              {/* Document Download */}
+              <div className="border rounded-lg p-6 text-center">
+                <h4 className="text-md font-semibold mb-2">Download Original Document</h4>
+                {latestDocument ? (
+                  <>
+                    <p className="text-gray-600 mb-4">Download the original uploaded document.</p>
+                    <Button asChild className="w-full">
+                      <a href={`/api/documents/download/${latestDocument.fileUrl}`} download>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Document
+                      </a>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-500 mb-4">No original document available.</p>
+                    <Button disabled className="w-full">
+                      <Download className="h-4 w-4 mr-2" />
+                      No Document Available
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

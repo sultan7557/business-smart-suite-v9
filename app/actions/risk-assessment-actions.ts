@@ -440,6 +440,7 @@ export async function addCategory(title: string) {
     })
 
     revalidatePath("/risk-assessments")
+    revalidatePath("/api/sections")
     return { success: true, category }
   } catch (error) {
     console.error("Error adding category:", error)

@@ -51,6 +51,23 @@ export default async function EditAuditPage({ params }: EditAuditPageProps) {
     orderBy: { name: "asc" },
   })
 
+  // Fetch live procedures, manuals, and registers for document selection
+  const procedures = await prisma.procedure.findMany({
+    where: { archived: false },
+    select: { id: true, title: true, category: { select: { title: true } } },
+    orderBy: { title: "asc" },
+  })
+  const manuals = await prisma.manual.findMany({
+    where: { archived: false },
+    select: { id: true, title: true, category: { select: { title: true } } },
+    orderBy: { title: "asc" },
+  })
+  const registers = await prisma.register.findMany({
+    where: { archived: false },
+    select: { id: true, title: true, category: { select: { title: true } } },
+    orderBy: { title: "asc" },
+  })
+
   // Fetch all documents for this audit
   const documents = await prisma.document.findMany({
     where: {
@@ -81,7 +98,7 @@ export default async function EditAuditPage({ params }: EditAuditPageProps) {
         
         <h1 className="text-2xl font-bold mb-4">Edit Audit</h1>
         
-        <AuditForm users={users} audit={audit} />
+        <AuditForm users={users} audit={audit} procedures={procedures} manuals={manuals} registers={registers} />
         
         {/* Show documents regardless of completion status */}
         <AuditDocumentList 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { FileText, ArrowUpDown, Edit, Check, X, Plus, Archive, RefreshCw, GripVertical, Pencil, Trash2 } from "lucide-react"
+import { FileText, ArrowUpDown, Edit, Check, X, Plus, Archive, RefreshCw, GripVertical, Pencil, Trash2, Trash } from "lucide-react"
 import Link from "next/link"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Textarea } from "@/components/ui/textarea"
 import { SortButtons, SortType, SortDirection } from "@/components/ui/sort-buttons"
 import { Loader } from '@/components/ui/loader'
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface Section {
   id: string
@@ -76,6 +77,23 @@ export default function ManualsClient({
   const [archivedCategories, setArchivedCategories] = useState<any[]>(initialArchivedCategories)
   const router = useRouter()
 
+  // Force refresh data from server when needed
+  const refreshData = async () => {
+    try {
+      const response = await fetch('/api/manuals/refresh', {
+        method: 'GET',
+        cache: 'no-store'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setCategories(data.categories || [])
+        setArchivedCategories(data.archivedCategories || [])
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+    }
+  }
+
   useEffect(() => {
     const fetchSections = async () => {
       try {
@@ -93,6 +111,15 @@ export default function ManualsClient({
     }
     fetchSections()
   }, [])
+
+  // Sync local state with server state when data changes
+  useEffect(() => {
+    setCategories(initialCategories)
+  }, [initialCategories])
+
+  useEffect(() => {
+    setArchivedCategories(initialArchivedCategories)
+  }, [initialArchivedCategories])
 
   const handleMove = async (entryId: string, newSectionId: string, newCategoryId: string) => {
     const response = await fetch("/api/entries/move", {
@@ -206,7 +233,7 @@ export default function ManualsClient({
         <TabsContent value="active">
           {categories.map((category) => (
             <CategorySection
-              key={category.id}
+              key={`active-${category.id}`}
               category={category}
               canEdit={canEdit}
               canDelete={canDelete}
@@ -218,6 +245,8 @@ export default function ManualsClient({
               onDeleteCategory={handleDeleteCategory}
               onArchiveCategory={handleArchiveCategory}
               onEditCategory={handleEditCategory}
+              router={router}
+              onRefreshData={refreshData}
             />
           ))}
         </TabsContent>
@@ -225,7 +254,7 @@ export default function ManualsClient({
         <TabsContent value="archived">
           {archivedCategories.map((category) => (
             <CategorySection
-              key={category.id}
+              key={`archived-${category.id}`}
               category={category}
               canEdit={canEdit}
               canDelete={canDelete}
@@ -235,6 +264,8 @@ export default function ManualsClient({
               isLoading={isLoading}
               onCategoryHighlight={() => {}}
               onUnarchiveCategory={handleUnarchiveCategory}
+              router={router}
+              onRefreshData={refreshData}
             />
           ))}
         </TabsContent>
@@ -256,6 +287,8 @@ interface CategorySectionProps {
   onArchiveCategory?: (categoryId: string) => void
   onUnarchiveCategory?: (categoryId: string) => void
   onEditCategory?: (categoryId: string, newTitle: string) => void
+  router: any
+  onRefreshData: () => Promise<void>
 }
 
 function SortableManual({ manual, children }: { manual: Manual, children: React.ReactNode }) {
@@ -288,6 +321,8 @@ function ManualItem({
   onApprove,
   onHighlight,
   categoryId,
+  isSelected,
+  onSelect,
 }: { 
   manual: Manual
   canEdit: boolean
@@ -303,26 +338,33 @@ function ManualItem({
   onApprove: (id: string, currentApproved: boolean) => Promise<void>
   onHighlight: (manualId: string) => void
   categoryId: string
+  isSelected: boolean
+  onSelect: (manualId: string, checked: boolean) => void
 }) {
   const { attributes, listeners } = useSortable({ id: manual.id })
   // Local loading states for each action
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
 
   return (
-    <div className={`grid grid-cols-4 p-2 border-b items-center ${manual.highlighted ? "bg-yellow-50" : ""}`}>
-      <div className="flex items-center">
-        <FileText className="h-5 w-5 mr-2" />
+    <div className={`grid grid-cols-5 gap-4 p-2 border-b items-center ${manual.highlighted ? "bg-yellow-50" : ""}`}>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelect(manual.id, checked as boolean)}
+          aria-label={`Select ${manual.title}`}
+        />
+        <FileText className="h-5 w-5" />
         <Link href={`/manual/${manual.id}`} className="text-blue-600 hover:underline">
           {manual.title}
         </Link>
         {manual.approved && <span className="ml-2 text-green-600 text-xs">✓ Approved</span>}
       </div>
-      <div>{manual.version}</div>
-      <div>{new Date(manual.issueDate).toLocaleDateString()}</div>
-      <div className="flex justify-between">
-        <span>{manual.location}</span>
+      <div className="flex items-center">{manual.version}</div>
+      <div className="flex items-center">{new Date(manual.issueDate).toLocaleDateString()}</div>
+      <div className="flex items-center">{manual.location}</div>
+      <div className="flex justify-end items-center">
         {canEdit && (
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             {!isArchived && (
               <>
                 <Button
@@ -453,6 +495,8 @@ function CategorySection({
   onArchiveCategory,
   onUnarchiveCategory,
   onEditCategory,
+  router,
+  onRefreshData,
 }: CategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [manuals, setManuals] = useState<Manual[]>(category.manuals)
@@ -460,6 +504,9 @@ function CategorySection({
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   // For category-level actions, add similar local loading state and loader feedback
   const [categoryLoadingAction, setCategoryLoadingAction] = useState<string | null>(null)
+  // Bulk selection state
+  const [selectedManuals, setSelectedManuals] = useState<Set<string>>(new Set())
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
 
   // Sorting logic
   useEffect(() => {
@@ -520,11 +567,15 @@ function CategorySection({
   const handleArchive = async (manualId: string): Promise<void> => {
     await archiveItem(manualId, "manual")
     setManuals((prevManuals: Manual[]) => prevManuals.filter((m: Manual) => m.id !== manualId))
+    // Refresh data to ensure consistency
+    await onRefreshData()
   }
 
   const handleUnarchive = async (manualId: string): Promise<void> => {
     await unarchiveItem(manualId, "manual")
     setManuals((prevManuals: Manual[]) => prevManuals.filter((m: Manual) => m.id !== manualId))
+    // Refresh data to ensure consistency
+    await onRefreshData()
   }
 
   const handleCreate = async (newManual: Manual): Promise<void> => {
@@ -536,6 +587,7 @@ function CategorySection({
     try {
       await deleteItem(manualId, "manual")
       setManuals(manuals.filter((m: Manual) => m.id !== manualId))
+      // Server action already handles revalidatePath("/manual")
     } catch (error) {
       console.error("Error deleting manual:", error)
     }
@@ -547,6 +599,7 @@ function CategorySection({
       setManuals(manuals.map((m: Manual) => 
         m.id === manualId ? { ...m, approved: !currentApproved } : m
       ))
+      // Server action already handles revalidatePath("/manual")
     } catch (error) {
       console.error("Error toggling approval:", error)
     }
@@ -559,6 +612,65 @@ function CategorySection({
         m.id === manualId ? { ...m, highlighted: !m.highlighted } : m
       )
     )
+    // Server action already handles revalidatePath("/manual")
+  }
+
+  // Bulk selection handlers
+  const handleSelectManual = (manualId: string, checked: boolean) => {
+    setSelectedManuals(prev => {
+      const newSet = new Set(prev)
+      if (checked) {
+        newSet.add(manualId)
+      } else {
+        newSet.delete(manualId)
+      }
+      return newSet
+    })
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedManuals(new Set(manuals.map(m => m.id)))
+    } else {
+      setSelectedManuals(new Set())
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedManuals.size === 0) return
+
+    const confirmMessage = `Are you sure you want to delete ${selectedManuals.size} manual(s)? This action cannot be undone.`
+    if (!confirm(confirmMessage)) return
+
+    setIsBulkDeleting(true)
+    try {
+      const response = await fetch('/api/manuals', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: Array.from(selectedManuals)
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete manuals')
+      }
+
+      // Remove deleted manuals from local state
+      setManuals(prevManuals => 
+        prevManuals.filter(m => !selectedManuals.has(m.id))
+      )
+      setSelectedManuals(new Set())
+      // Refresh data to ensure consistency
+      await onRefreshData()
+    } catch (error) {
+      console.error('Error bulk deleting manuals:', error)
+      alert('Failed to delete manuals. Please try again.')
+    } finally {
+      setIsBulkDeleting(false)
+    }
   }
 
   return (
@@ -668,11 +780,40 @@ function CategorySection({
 
       {isExpanded && manuals.length > 0 && (
         <div className="border border-gray-200">
-          <div className="grid grid-cols-4 bg-gray-100 p-2 border-b">
-            <div>Manual</div>
-            <div>Issue Level</div>
-            <div>Issue Date</div>
-            <div>Location</div>
+          <div className="grid grid-cols-5 gap-4 bg-gray-100 p-2 border-b">
+            <div className="flex items-center gap-2">
+              {canDelete && (
+                <Checkbox
+                  checked={selectedManuals.size === manuals.length && manuals.length > 0}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all manuals"
+                />
+              )}
+              Manual
+            </div>
+            <div className="flex items-center">Issue Level</div>
+            <div className="flex items-center">Issue Date</div>
+            <div className="flex items-center">Location</div>
+            <div className="flex justify-end items-center gap-2">
+              <span className="text-sm text-gray-600">Actions</span>
+              {canDelete && selectedManuals.size > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  disabled={isBulkDeleting}
+                >
+                  {isBulkDeleting ? (
+                    <Loader size="sm" ariaLabel="Deleting..." />
+                  ) : (
+                    <>
+                      <Trash className="h-3 w-3 mr-1" />
+                      Delete ({selectedManuals.size})
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -694,6 +835,8 @@ function CategorySection({
                     onApprove={handleApprove}
                     onHighlight={isArchived ? () => {} : handleHighlight}
                     categoryId={category.id}
+                    isSelected={selectedManuals.has(manual.id)}
+                    onSelect={handleSelectManual}
                   />
                 </SortableManual>
               ))}

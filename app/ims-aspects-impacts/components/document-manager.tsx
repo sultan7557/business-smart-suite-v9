@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { 
   Upload, 
   FileText, 
@@ -19,7 +20,10 @@ import {
   User,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  X,
+  File,
+  UploadCloud
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
@@ -51,6 +55,14 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
   const [description, setDescription] = useState("")
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
   const [showPreview, setShowPreview] = useState(false)
+  
+  // Multiple file upload states
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+  const [uploadStatus, setUploadStatus] = useState<{ [key: string]: 'pending' | 'uploading' | 'success' | 'error' }>({})
+  const [bulkTitle, setBulkTitle] = useState("")
+  const [bulkDescription, setBulkDescription] = useState("")
+  const [showBulkUpload, setShowBulkUpload] = useState(false)
 
   useEffect(() => {
     loadDocuments()
@@ -136,7 +148,10 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
   }
 
   async function handleDelete(documentId: string) {
-    if (!confirm("Are you sure you want to delete this document?")) return
+    const doc = documents.find(d => d.id === documentId);
+    const docName = doc?.title || 'this document';
+    
+    if (!confirm(`Are you sure you want to delete "${docName}"? This action cannot be undone.`)) return
 
     try {
       const response = await fetch(`/api/documents/${documentId}`, {
@@ -146,7 +161,7 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
       if (response.ok) {
         toast({
           title: "Success",
-          description: "Document deleted successfully",
+          description: `"${docName}" deleted successfully`,
         })
         loadDocuments()
         onDocumentsChange?.()
@@ -161,6 +176,137 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
         variant: "destructive",
       })
     }
+  }
+
+  // Multiple file upload functions
+  function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files || [])
+    const validFiles: File[] = []
+    const errors: string[] = []
+
+    files.forEach(file => {
+      if (file.size > 10 * 1024 * 1024) {
+        errors.push(`${file.name}: File size must be less than 10MB`)
+      } else {
+        validFiles.push(file)
+      }
+    })
+
+    if (errors.length > 0) {
+      toast({
+        title: "File Size Errors",
+        description: errors.join(", "),
+        variant: "destructive",
+      })
+    }
+
+    setSelectedFiles(prev => [...prev, ...validFiles])
+    
+    // Initialize status for new files
+    const newStatus: { [key: string]: 'pending' | 'uploading' | 'success' | 'error' } = {}
+    validFiles.forEach(file => {
+      newStatus[file.name] = 'pending'
+    })
+    setUploadStatus(prev => ({ ...prev, ...newStatus }))
+  }
+
+  function removeFile(fileName: string) {
+    setSelectedFiles(prev => prev.filter(file => file.name !== fileName))
+    setUploadStatus(prev => {
+      const newStatus = { ...prev }
+      delete newStatus[fileName]
+      return newStatus
+    })
+    setUploadProgress(prev => {
+      const newProgress = { ...prev }
+      delete newProgress[fileName]
+      return newProgress
+    })
+  }
+
+  async function handleBulkUpload() {
+    if (selectedFiles.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one file",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setUploading(true)
+    let successCount = 0
+    let errorCount = 0
+
+    // Upload files sequentially to avoid overwhelming the server
+    for (const file of selectedFiles) {
+      try {
+        setUploadStatus(prev => ({ ...prev, [file.name]: 'uploading' }))
+        setUploadProgress(prev => ({ ...prev, [file.name]: 0 }))
+
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("title", bulkTitle || file.name)
+        formData.append("entityId", riskId)
+        formData.append("entityType", "imsAspectImpact")
+        if (bulkDescription) formData.append("notes", bulkDescription)
+
+        // Simulate progress for better UX
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => ({
+            ...prev,
+            [file.name]: Math.min((prev[file.name] || 0) + 10, 90)
+          }))
+        }, 100)
+
+        const response = await fetch("/api/documents", {
+          method: "POST",
+          body: formData,
+        })
+
+        clearInterval(progressInterval)
+        setUploadProgress(prev => ({ ...prev, [file.name]: 100 }))
+
+        if (response.ok) {
+          setUploadStatus(prev => ({ ...prev, [file.name]: 'success' }))
+          successCount++
+        } else {
+          throw new Error(`Upload failed for ${file.name}`)
+        }
+      } catch (error) {
+        console.error(`Error uploading ${file.name}:`, error)
+        setUploadStatus(prev => ({ ...prev, [file.name]: 'error' }))
+        errorCount++
+      }
+    }
+
+    // Show final results
+    if (successCount > 0) {
+      toast({
+        title: "Bulk Upload Complete",
+        description: `${successCount} file(s) uploaded successfully${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
+        variant: errorCount > 0 ? "destructive" : "default",
+      })
+    }
+
+    if (errorCount > 0 && successCount === 0) {
+      toast({
+        title: "Upload Failed",
+        description: "All files failed to upload. Please try again.",
+        variant: "destructive",
+      })
+    }
+
+    // Reset state and reload documents
+    setSelectedFiles([])
+    setUploadStatus({})
+    setUploadProgress({})
+    setBulkTitle("")
+    setBulkDescription("")
+    setShowBulkUpload(false)
+    loadDocuments()
+    onDocumentsChange?.()
+    setUploading(false)
   }
 
   function formatFileSize(bytes: number): string {
@@ -195,60 +341,173 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Documents</h3>
-        <Dialog open={showUpload} onOpenChange={setShowUpload}>
-          <DialogTrigger asChild>
-            <Button>
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Document
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Upload Document</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title">Title (Optional)</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Document title"
-                />
+        <div className="flex gap-2">
+          <Dialog open={showUpload} onOpenChange={setShowUpload}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Single
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Upload Document</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Title (Optional)</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Document title"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="file">File</Label>
+                  <Input
+                    id="file"
+                    type="file"
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Max size: 10MB. Supported: PDF, Word, Excel, Images
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="description">Description (Optional)</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Document description"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowUpload(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUpload} disabled={uploading || !selectedFile}>
+                    {uploading ? "Uploading..." : "Upload"}
+                  </Button>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="file">File</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Max size: 10MB. Supported: PDF, Word, Excel, Images
-                </p>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={showBulkUpload} onOpenChange={setShowBulkUpload}>
+            <DialogTrigger asChild>
+              <Button>
+                <UploadCloud className="w-4 h-4 mr-2" />
+                Upload Multiple
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Upload Multiple Documents</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bulk-title">Title Prefix (Optional)</Label>
+                  <Input
+                    id="bulk-title"
+                    value={bulkTitle}
+                    onChange={(e) => setBulkTitle(e.target.value)}
+                    placeholder="Common title prefix for all files"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bulk-description">Description (Optional)</Label>
+                  <Textarea
+                    id="bulk-description"
+                    value={bulkDescription}
+                    onChange={(e) => setBulkDescription(e.target.value)}
+                    placeholder="Common description for all files"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bulk-files">Select Files</Label>
+                  <Input
+                    id="bulk-files"
+                    type="file"
+                    multiple
+                    onChange={handleFileSelect}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Max size per file: 10MB. Supported: PDF, Word, Excel, Images
+                  </p>
+                </div>
+                
+                {selectedFiles.length > 0 && (
+                  <div className="space-y-3">
+                    <Label>Selected Files ({selectedFiles.length})</Label>
+                    <div className="max-h-60 overflow-y-auto border rounded-lg p-3 space-y-2">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-medium truncate">{file.name}</div>
+                              <div className="text-xs text-muted-foreground">{formatFileSize(file.size)}</div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {uploadStatus[file.name] === 'pending' && (
+                                <Badge variant="secondary">Pending</Badge>
+                              )}
+                              {uploadStatus[file.name] === 'uploading' && (
+                                <div className="flex items-center gap-2">
+                                  <Progress value={uploadProgress[file.name] || 0} className="w-16 h-2" />
+                                  <span className="text-xs">{uploadProgress[file.name] || 0}%</span>
+                                </div>
+                              )}
+                              {uploadStatus[file.name] === 'success' && (
+                                <CheckCircle className="w-4 h-4 text-green-500" />
+                              )}
+                              {uploadStatus[file.name] === 'error' && (
+                                <XCircle className="w-4 h-4 text-red-500" />
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile(file.name)}
+                                disabled={uploadStatus[file.name] === 'uploading'}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => {
+                    setShowBulkUpload(false)
+                    setSelectedFiles([])
+                    setUploadStatus({})
+                    setUploadProgress({})
+                    setBulkTitle("")
+                    setBulkDescription("")
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleBulkUpload} 
+                    disabled={uploading || selectedFiles.length === 0}
+                  >
+                    {uploading ? "Uploading..." : `Upload ${selectedFiles.length} Files`}
+                  </Button>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Document description"
-                  rows={3}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowUpload(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleUpload} disabled={uploading || !selectedFile}>
-                  {uploading ? "Uploading..." : "Upload"}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {loading ? (
@@ -315,12 +574,34 @@ export default function DocumentManager({ riskId, onDocumentsChange }: DocumentM
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            // Normalize fileUrl for download - use the API endpoint
-                            let downloadUrl = doc.fileUrl;
-                            if (downloadUrl && !downloadUrl.startsWith('/api/documents/download/')) {
-                              downloadUrl = `/api/documents/download/${downloadUrl.replace(/^\/uploads\//, '')}`;
+                            try {
+                              // Normalize fileUrl for download - use the API endpoint
+                              let downloadUrl = doc.fileUrl;
+                              if (downloadUrl && !downloadUrl.startsWith('/api/documents/download/')) {
+                                downloadUrl = `/api/documents/download/${downloadUrl.replace(/^\/uploads\//, '')}`;
+                              }
+                              
+                              // Create a temporary link element for download
+                              const link = document.createElement('a');
+                              link.href = downloadUrl;
+                              link.download = doc.title || 'document';
+                              link.target = '_blank';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              
+                              toast({
+                                title: "Download Started",
+                                description: `Downloading ${doc.title || 'document'}`,
+                              });
+                            } catch (error) {
+                              console.error('Download error:', error);
+                              toast({
+                                title: "Download Failed",
+                                description: "Unable to download the document. Please try again.",
+                                variant: "destructive",
+                              });
                             }
-                            window.open(downloadUrl, "_blank");
                           }}
                         >
                           <Download className="w-4 h-4" />

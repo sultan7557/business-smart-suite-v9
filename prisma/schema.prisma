@@ -136,6 +136,7 @@ model User {
   imsAspectImpactReviews            IMSAspectImpactReview[]
   imsAspectImpactVersions           IMSAspectImpactVersion[]
   imsAspectImpactDocumentAudits     IMSAspectImpactDocumentAudit[]
+  auditReviews                      AuditReview[]
 }
 
 model Role {
@@ -475,6 +476,20 @@ model CostOfQuality {
   updatedAt DateTime @updatedAt
 }
 
+model AuditReview {
+  id             String    @id @default(uuid())
+  auditId        String
+  reviewerName   String?
+  reviewDetails  String?
+  reviewDate     DateTime
+  nextReviewDate DateTime?
+  createdById    String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  audit          Audit     @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  createdBy      User      @relation(fields: [createdById], references: [id])
+}
+
 model Audit {
   id                    String          @id @default(uuid())
   title                 String
@@ -499,6 +514,7 @@ model Audit {
   updatedBy             User?           @relation("UpdatedAudits", fields: [updatedById], references: [id])
   auditDocuments        AuditDocument[]
   documents             Document[]      @relation("AuditToDocument")
+  reviews               AuditReview[]
 }
 
 model AuditDocument {

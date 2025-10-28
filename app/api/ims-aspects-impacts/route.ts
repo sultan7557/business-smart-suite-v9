@@ -57,6 +57,19 @@ export async function POST(request: NextRequest) {
     },
   })
 
+  // Create initial version if version and reviewDate are provided
+  if (body.version && body.reviewDate) {
+    await prisma.iMSAspectImpactVersion.create({
+      data: {
+        aspectImpactId: created.id,
+        version: body.version,
+        reviewDate: new Date(body.reviewDate),
+        notes: "Initial version",
+        createdById: user.id,
+      },
+    })
+  }
+
   return NextResponse.json({ data: created }, { status: 201 })
 }
 

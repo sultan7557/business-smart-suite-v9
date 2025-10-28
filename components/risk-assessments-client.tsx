@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter, useSearchParams } from "next/navigation"
+import { clearApiCache } from "@/lib/cache-utils"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useSortable } from "@dnd-kit/sortable"
@@ -149,7 +150,9 @@ function RiskAssessmentItem({
                   currentCategoryId={category.id}
                   sections={sections}
                   isLoading={isLoading}
-                  onMove={(newSectionId, newCategoryId) => handleMove(riskAssessment.id, newSectionId, newCategoryId)}
+                  onMove={async (newSectionId, newCategoryId) => {
+                    await handleMove(riskAssessment.id, newSectionId, newCategoryId)
+                  }}
                 />
               </>
             )}
@@ -736,8 +739,16 @@ function AddCategoryDialog() {
             const title = formData.get("title") as string
             if (title) {
               try {
-                await addCategory(title)
-                router.refresh()
+                // Clear API cache before adding category
+                await clearApiCache()
+                
+                const result = await addCategory(title)
+                if (result.success) {
+                  router.refresh()
+                } else {
+                  console.error("Error adding category:", result.error)
+                  alert(result.error || "Failed to add category. Please try again.")
+                }
               } catch (error) {
                 console.error("Error adding category:", error)
                 alert("Failed to add category. Please try again.")
