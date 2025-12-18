@@ -76,7 +76,7 @@ interface CategorySectionProps {
   canEdit: boolean
   canDelete: boolean
   isArchived: boolean
-  onMove: (entryId: string, newSectionId: string, newCategoryId: string) => Promise<boolean>
+  onMove: (entryId: string, newSectionId: string, newCategoryId: string) => Promise<void>
   sections: Section[]
   isLoading: boolean
 }
@@ -116,7 +116,7 @@ function PolicyItem({
   canEdit: boolean
   canDelete: boolean
   isArchived: boolean
-  onMove: (entryId: string, newSectionId: string, newCategoryId: string) => Promise<boolean>
+  onMove: (entryId: string, newSectionId: string, newCategoryId: string) => Promise<void>
   sections: Section[]
   isLoading: boolean
   onDelete: (policyId: string) => Promise<void>
@@ -128,24 +128,38 @@ function PolicyItem({
   const router = useRouter()
   const { attributes, listeners } = useSortable({ id: policy.id })
 
-  const handleMove = async (entryId: string, newSectionId: string, newCategoryId: string): Promise<boolean> => {
+  const handleMove = async (entryId: string, newSectionId: string, newCategoryId: string): Promise<void> => {
     try {
-      const success = await onMove(entryId, newSectionId, newCategoryId)
-      if (!success) {
-        console.error("Failed to move policy")
-        alert("Failed to move policy. Please try again.")
-        return false
-      }
-      return true
+      await onMove(entryId, newSectionId, newCategoryId)
     } catch (error) {
       console.error("Error in handleMove:", error)
       alert("An error occurred while moving the policy. Please try again.")
-      return false
     }
   }
 
+  const handleRowClick = () => {
+    router.push(`/policies/${policy.id}`)
+  }
+
+  const stopPropagation: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation()
+  }
+
   return (
-    <div className={`grid grid-cols-4 p-2 border-b items-center ${policy.highlighted ? "bg-yellow-50" : ""}`}>
+    <div
+      className={`grid grid-cols-4 p-2 border-b items-center cursor-pointer hover:bg-gray-50 ${
+        policy.highlighted ? "bg-yellow-50" : ""
+      }`}
+      onClick={handleRowClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          handleRowClick()
+        }
+      }}
+    >
       <div className="flex items-center">
         <FileText className="h-5 w-5 mr-2" />
         <Link href={`/policies/${policy.id}`} className="text-blue-600 hover:underline">
@@ -161,7 +175,14 @@ function PolicyItem({
           <div className="flex gap-1">
             {!isArchived && (
               <>
-                <Button variant="outline" size="icon" className="h-6 w-6 cursor-grab" {...attributes} {...listeners}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-6 w-6 cursor-grab"
+                  {...attributes}
+                  {...listeners}
+                  onClick={stopPropagation}
+                >
                   <GripVertical className="h-3 w-3" />
                 </Button>
                 <MoveEntryDialog
@@ -180,7 +201,8 @@ function PolicyItem({
                 variant="outline"
                 size="icon"
                 className="h-6 w-6 bg-green-600 text-white border-none"
-                onClick={async () => {
+                onClick={async (e) => {
+                  stopPropagation(e)
                   try {
                     await onUnarchive(policy.id)
                     router.refresh()
@@ -198,7 +220,8 @@ function PolicyItem({
                 variant="outline"
                 size="icon"
                 className="h-6 w-6"
-                onClick={async () => {
+                onClick={async (e) => {
+                  stopPropagation(e)
                   try {
                     await onArchive(policy.id)
                     router.refresh()
@@ -217,7 +240,8 @@ function PolicyItem({
                 variant="outline"
                 size="icon"
                 className="h-6 w-6 bg-red-500 text-white border-none"
-                onClick={async () => {
+                onClick={async (e) => {
+                  stopPropagation(e)
                   if (confirm("Are you sure you want to delete this policy? This action cannot be undone.")) {
                     try {
                       await onDelete(policy.id)
@@ -238,7 +262,8 @@ function PolicyItem({
                   variant="outline"
                   size="icon"
                   className={`h-6 w-6 ${policy.highlighted ? "bg-gray-200" : "bg-yellow-500 text-white"} border-none`}
-                  onClick={async () => {
+                  onClick={async (e) => {
+                    stopPropagation(e)
                     try {
                       await onHighlight(policy.id)
                       router.refresh()
@@ -254,7 +279,8 @@ function PolicyItem({
                   variant="outline"
                   size="icon"
                   className={`h-6 w-6 ${policy.approved ? "bg-gray-200" : "bg-green-500 text-white"} border-none`}
-                  onClick={async () => {
+                  onClick={async (e) => {
+                    stopPropagation(e)
                     try {
                       await onApprove(policy.id)
                       router.refresh()
@@ -568,11 +594,11 @@ export default function PoliciesClient({
     fetchSections()
   }, [])
 
-  const handleMove = async (entryId: string, newSectionId: string, newCategoryId: string): Promise<boolean> => {
+  const handleMove = async (entryId: string, newSectionId: string, newCategoryId: string): Promise<void> => {
     if (!newCategoryId) {
       console.error("newCategoryId is required for move operation")
       alert("Invalid move operation: Category ID is required.")
-      return false
+      return
     }
 
     try {
@@ -594,7 +620,7 @@ export default function PoliciesClient({
         const errorMessage = errorData.error || `Server error: ${response.status} ${response.statusText}`
         console.error("Move failed:", errorMessage)
         alert(`Failed to move policy: ${errorMessage}`)
-        return false
+        return
       }
 
       const result = await response.json()
@@ -602,11 +628,9 @@ export default function PoliciesClient({
       
       // Refresh the page to reflect changes
       router.refresh()
-      return true
     } catch (error) {
       console.error("Error moving policy:", error)
       alert("Network error occurred while moving policy. Please check your connection and try again.")
-      return false
     }
   }
 
@@ -616,19 +640,20 @@ export default function PoliciesClient({
         <FileText className="h-6 w-6 mr-2" />
         <h1 className="text-2xl font-bold">Policies {showArchived && "(Archived)"}</h1>
 
-        <Button
-          variant="outline"
-          className="ml-4"
-          onClick={() => {
-            router.push(showArchived ? "/policies" : "/policies?showArchived=true")
-          }}
-        >
-          {showArchived ? "View Active Policies" : "View Archived Policies"}
-        </Button>
-
         {canEdit && (
           <div className="ml-auto flex gap-2">
             <AddCategoryDialog />
+            <Button
+              variant="outline"
+              onClick={() => {
+                router.push(showArchived ? "/policies" : "/policies?showArchived=true")
+              }}
+            >
+              {showArchived ? "Show Active" : "Show Archived"}
+            </Button>
+            <Link href="/policies/new">
+              <Button>Add New</Button>
+            </Link>
             <Button
               variant={currentSort === "name" ? "default" : "outline"}
               onClick={() => {
@@ -649,202 +674,6 @@ export default function PoliciesClient({
               <ArrowUpDown className="h-4 w-4 mr-2" />
               Sort by Date
             </Button>
-            {showArchived && (
-              <Button
-                variant="outline"
-                className="bg-blue-500 text-white"
-                onClick={async () => {
-                  try {
-                    const highlightedPolicies = categories.flatMap((cat) =>
-                      cat.policies.filter((p: any) => p.highlighted),
-                    )
-                    const highlightedCategories = categories.filter((cat) => cat.highlighted)
-
-                    const totalHighlighted = highlightedPolicies.length + highlightedCategories.length
-
-                    if (totalHighlighted === 0) {
-                      alert("No highlighted items to restore")
-                      return
-                    }
-
-                    if (confirm(`Restore ${totalHighlighted} highlighted items?`)) {
-                      const promises = [
-                        ...highlightedPolicies.map((p: any) => unarchiveItem(p.id, "policy")),
-                        ...highlightedCategories.map((c: any) => unarchiveItem(c.id, "category")),
-                      ]
-
-                      await Promise.all(promises)
-                      router.refresh()
-                    }
-                  } catch (error) {
-                    console.error("Error restoring items:", error)
-                    alert("Failed to restore items. Please try again.")
-                  }
-                }}
-                title="Restore highlighted items"
-              >
-                Restore Items
-              </Button>
-            )}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="icon" title="Edit Categories">
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Categories</DialogTitle>
-                </DialogHeader>
-                <div className="py-4">
-                  <p>Select a category to edit:</p>
-                  <ul className="mt-2 space-y-2">
-                    {categories.map((category) => (
-                      <li key={category.id} className="flex items-center justify-between">
-                        <span>{category.title}</span>
-                        <EditCategoryDialog category={category} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </DialogContent>
-            </Dialog>
-            <Button
-              variant="outline"
-              size="icon"
-              className="bg-green-500 text-white"
-              onClick={async () => {
-                try {
-                  const highlightedPolicies = categories.flatMap((cat) =>
-                    cat.policies.filter((p: any) => p.highlighted && !p.approved),
-                  )
-
-                  if (highlightedPolicies.length === 0) {
-                    alert("No highlighted policies to approve")
-                    return
-                  }
-
-                  if (confirm(`Approve ${highlightedPolicies.length} highlighted policies?`)) {
-                    await Promise.all(highlightedPolicies.map((p: any) => approvePolicy(p.id)))
-                    router.refresh()
-                  }
-                } catch (error) {
-                  console.error("Error approving policies:", error)
-                  alert("Failed to approve policies. Please try again.")
-                }
-              }}
-              title="Approve highlighted policies"
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={async () => {
-                try {
-                  const highlightedPolicies = categories.flatMap((cat) =>
-                    cat.policies.filter((p: any) => p.highlighted),
-                  )
-                  const highlightedCategories = categories.filter((cat) => cat.highlighted)
-
-                  const totalHighlighted = highlightedPolicies.length + highlightedCategories.length
-
-                  if (totalHighlighted === 0) {
-                    alert("No highlighted items to archive")
-                    return
-                  }
-
-                  if (confirm(`Archive ${totalHighlighted} highlighted items?`)) {
-                    const promises = [
-                      ...highlightedPolicies.map((p: any) => archiveItem(p.id, "policy")),
-                      ...highlightedCategories.map((c: any) => archiveItem(c.id, "category")),
-                    ]
-
-                    await Promise.all(promises)
-                    router.refresh()
-                  }
-                } catch (error) {
-                  console.error("Error archiving items:", error)
-                  alert("Failed to archive items. Please try again.")
-                }
-              }}
-              title="Archive highlighted items"
-            >
-              <FileArchive className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={async () => {
-                try {
-                  const highlightedPolicies = categories.flatMap((cat) =>
-                    cat.policies.filter((p: any) => p.highlighted),
-                  )
-                  const highlightedCategories = categories.filter((cat) => cat.highlighted)
-
-                  const totalHighlighted = highlightedPolicies.length + highlightedCategories.length
-
-                  if (totalHighlighted === 0) {
-                    alert("No highlighted items to clear")
-                    return
-                  }
-
-                  if (confirm(`Clear highlights from ${totalHighlighted} items?`)) {
-                    const promises = [
-                      ...highlightedPolicies.map((p: any) => toggleHighlight(p.id, "policy")),
-                      ...highlightedCategories.map((c: any) => toggleHighlight(c.id, "category")),
-                    ]
-
-                    await Promise.all(promises)
-                    router.refresh()
-                  }
-                } catch (error) {
-                  console.error("Error clearing highlights:", error)
-                  alert("Failed to clear highlights. Please try again.")
-                }
-              }}
-              title="Clear all highlights"
-            >
-              <div className="h-4 w-4 border border-gray-400"></div>
-            </Button>
-            {canDelete && (
-              <Button
-                variant="outline"
-                size="icon"
-                className="bg-red-500 text-white"
-                onClick={async () => {
-                  try {
-                    const highlightedPolicies = categories.flatMap((cat) =>
-                      cat.policies.filter((p: any) => p.highlighted),
-                    )
-                    const highlightedCategories = categories.filter((cat) => cat.highlighted)
-
-                    const totalHighlighted = highlightedPolicies.length + highlightedCategories.length
-
-                    if (totalHighlighted === 0) {
-                      alert("No highlighted items to delete")
-                      return
-                    }
-
-                    if (confirm(`Delete ${totalHighlighted} highlighted items? This action cannot be undone.`)) {
-                      const promises = [
-                        ...highlightedPolicies.map((p: any) => deleteItem(p.id, "policy")),
-                        ...highlightedCategories.map((c: any) => deleteItem(c.id, "category")),
-                      ]
-
-                      await Promise.all(promises)
-                      router.refresh()
-                    }
-                  } catch (error) {
-                    console.error("Error deleting highlighted items:", error)
-                    alert("Failed to delete highlighted items. Please try again.")
-                  }
-                }}
-                title="Delete highlighted items"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         )}
       </div>

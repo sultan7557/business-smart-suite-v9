@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { FileText, Edit, Check, X, Plus, Archive, RefreshCw, GripVertical } from "lucide-react"
+import { FileText, Edit, Check, X, Plus, Archive, RefreshCw, GripVertical, ArrowUpDown } from "lucide-react"
 import Link from "next/link"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -175,6 +175,15 @@ export default function ProceduresClient({
     })))
   }
 
+  const currentSort = searchParams?.get("sort") || ""
+
+  const buildSortedUrl = (sort: string) => {
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : "")
+    params.set("sort", sort)
+    const qs = params.toString()
+    return qs ? `/procedures?${qs}` : "/procedures"
+  }
+
   return (
     <div className="p-4">
       <div className="flex items-center mb-4">
@@ -186,6 +195,26 @@ export default function ProceduresClient({
             <Link href="/procedures/new">
               <Button>Add New</Button>
             </Link>
+            <Button
+              variant={currentSort === "name" ? "default" : "outline"}
+              onClick={() => {
+                router.push(buildSortedUrl("name"))
+              }}
+              title="Sort by Name"
+            >
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              Sort by Name
+            </Button>
+            <Button
+              variant={currentSort === "date" ? "default" : "outline"}
+              onClick={() => {
+                router.push(buildSortedUrl("date"))
+              }}
+              title="Sort by Date"
+            >
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              Sort by Date
+            </Button>
           </div>
         )}
       </div>
@@ -498,6 +527,7 @@ function ProcedureItem({
   onUpdateProcedure: (procedureId: string, updatedData: Partial<Procedure>) => Promise<void>
   onRemoveProcedure: (procedureId: string) => Promise<void>
 }) {
+  const router = useRouter()
   const { attributes, listeners } = useSortable({ id: procedure.id })
   const [isOperationLoading, setIsOperationLoading] = useState(false)
 
@@ -549,8 +579,29 @@ function ProcedureItem({
     }
   }
 
+  const handleRowClick = () => {
+    router.push(`/procedures/${procedure.id}`)
+  }
+
+  const stopPropagation: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation()
+  }
+
   return (
-    <div className={`grid grid-cols-4 p-2 border-b items-center ${procedure.highlighted ? "bg-yellow-50" : ""}`}>
+    <div
+      className={`grid grid-cols-4 p-2 border-b items-center cursor-pointer hover:bg-gray-50 ${
+        procedure.highlighted ? "bg-yellow-50" : ""
+      }`}
+      onClick={handleRowClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          handleRowClick()
+        }
+      }}
+    >
       <div className="flex items-center">
         <FileText className="h-5 w-5 mr-2" />
         <Link href={`/procedures/${procedure.id}`} className="text-blue-600 hover:underline">
@@ -567,7 +618,14 @@ function ProcedureItem({
             {isOperationLoading && <Loader size="sm" />}
             {!isArchived && (
               <>
-                <Button variant="outline" size="icon" className="h-6 w-6 cursor-grab" {...attributes} {...listeners}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-6 w-6 cursor-grab"
+                  {...attributes}
+                  {...listeners}
+                  onClick={stopPropagation}
+                >
                   <GripVertical className="h-3 w-3" />
                 </Button>
                 <MoveEntryDialog
@@ -586,7 +644,10 @@ function ProcedureItem({
                 variant="outline"
                 size="icon"
                 className="h-6 w-6 bg-green-600 text-white border-none"
-                onClick={() => handleUnarchive(procedure.id)}
+                onClick={(e) => {
+                  stopPropagation(e)
+                  handleUnarchive(procedure.id)
+                }}
                 title="Unarchive"
                 disabled={isOperationLoading}
               >
@@ -597,7 +658,10 @@ function ProcedureItem({
                 variant="outline"
                 size="icon"
                 className="h-6 w-6"
-                onClick={() => handleArchive(procedure.id)}
+                onClick={(e) => {
+                  stopPropagation(e)
+                  handleArchive(procedure.id)
+                }}
                 title="Archive"
                 disabled={isOperationLoading}
               >
@@ -609,7 +673,8 @@ function ProcedureItem({
                 variant="outline"
                 size="icon"
                 className="h-6 w-6 bg-red-500 text-white border-none"
-                onClick={async () => {
+                onClick={async (e) => {
+                  stopPropagation(e)
                   if (confirm("Are you sure you want to delete this procedure? This action cannot be undone.")) {
                     await handleDelete(procedure.id)
                   }
@@ -624,7 +689,10 @@ function ProcedureItem({
                 variant="outline"
                 size="icon"
                 className={`h-6 w-6 ${procedure.highlighted ? "bg-gray-200" : "bg-yellow-500 text-white"} border-none`}
-                onClick={() => handleHighlight(procedure.id)}
+                onClick={(e) => {
+                  stopPropagation(e)
+                  handleHighlight(procedure.id)
+                }}
                 disabled={isOperationLoading}
               >
                 <div className="h-3 w-3 bg-yellow-500"></div>

@@ -7,6 +7,7 @@ import { hasPermission } from "@/lib/auth"
 import { notFound } from "next/navigation"
 import PolicyForm from "@/components/policy-form"
 import DocumentPreview from "@/components/document-preview"
+import ReviewsSection from "./reviews-section"
 
 interface PolicyPageProps {
   params: {
@@ -63,7 +64,7 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
         },
       },
     },
-  })
+  }) as any
 
   if (!policy) {
     notFound()
@@ -107,8 +108,8 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
 
           {canEdit && (
             <div className="mt-8">
-              <Button variant="secondary" className="w-full mb-2">
-                Edit this document
+              <Button variant="secondary" className="w-full mb-2" asChild>
+                <Link href={`/policies/${policyId}/edit`}>Edit this document</Link>
               </Button>
               <Button variant="secondary" className="w-full" asChild>
                 <Link href={`/policies/${policyId}/upload`}>Replace this document</Link>
@@ -142,30 +143,46 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
             before change
           </p>
 
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border p-2 text-left">Date</th>
-                <th className="border p-2 text-left">Version</th>
-                <th className="border p-2 text-left">Updated by</th>
-                <th className="border p-2 text-left">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {policy.versions.map((version) => (
-                <tr key={version.id} className="border-b">
-                  <td className="border p-2">{new Date(version.issueDate).toLocaleDateString()}</td>
-                  <td className="border p-2 text-blue-600">{version.version}</td>
-                  <td className="border p-2">{version.createdBy.name}</td>
-                  <td className="border p-2">{version.notes || "-"}</td>
+          {policy.versions.length > 0 ? (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left">Date</th>
+                  <th className="border p-2 text-left">Version</th>
+                  <th className="border p-2 text-left">Updated by</th>
+                  <th className="border p-2 text-left">Notes</th>
+                  <th className="border p-2 text-left">Document</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {policy.versions.map((version: any) => (
+                  <tr key={version.id} className="border-b">
+                    <td className="border p-2">{new Date(version.issueDate).toLocaleDateString()}</td>
+                    <td className="border p-2 text-blue-600">{version.version}</td>
+                    <td className="border p-2">{version.createdBy.name}</td>
+                    <td className="border p-2">{version.notes || "-"}</td>
+                    <td className="border p-2">
+                      {version.document ? (
+                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
+                          <a href={`/api/documents/download/${version.document.fileUrl}`} download>
+                            Download
+                          </a>
+                        </Button>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center py-4 text-gray-500">No version history available</div>
+          )}
         </TabsContent>
 
         <TabsContent value="reviews">
-          <div className="p-4 text-center text-gray-500">No reviews available for this document.</div>
+          <ReviewsSection policyId={policyId} canEdit={canEdit} />
         </TabsContent>
 
         <TabsContent value="permissions">
@@ -180,7 +197,7 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
           <div className="p-4 text-center">
             {latestDocument ? (
               <Button className="flex items-center" asChild>
-                <a href={latestDocument.fileUrl} download target="_blank" rel="noopener noreferrer">
+                <a href={`/api/documents/download/${latestDocument.fileUrl}`} download>
                   <Download className="h-4 w-4 mr-2" /> Download Document
                 </a>
               </Button>

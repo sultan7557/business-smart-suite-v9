@@ -416,3 +416,76 @@ export async function editCategory(id: string, title: string) {
     return { success: false, error: "Failed to edit category" }
   }
 }
+
+// Get policy reviews
+export async function getPolicyReviews(policyId: string) {
+  try {
+    const reviews = await (prisma as any).policyReview.findMany({
+      where: { policyId },
+      orderBy: { reviewDate: "desc" },
+      include: {
+        reviewedBy: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    })
+
+    return { success: true, data: reviews }
+  } catch (error) {
+    console.error("Error fetching policy reviews:", error)
+    return { success: false, error: "Failed to fetch reviews" }
+  }
+}
+
+// Add policy review
+export async function addPolicyReview(
+  policyId: string,
+  data: {
+    details: string
+    reviewDate: Date
+    nextReviewDate?: Date
+    reviewerName: string
+  }
+) {
+  try {
+    const user = await getUser()
+    if (!user) {
+      throw new Error("Unauthorized")
+    }
+
+    const review = await (prisma as any).policyReview.create({
+      data: {
+        ...data,
+        policyId,
+        reviewedById: user.id as string,
+      },
+    })
+
+    revalidatePath(`/policies/${policyId}`)
+    return { success: true, review }
+  } catch (error) {
+    console.error("Error adding policy review:", error)
+    return { success: false, error: "Failed to add review" }
+  }
+}
+
+// Delete policy review
+export async function deletePolicyReview(reviewId: string) {
+  try {
+    const user = await getUser()
+    if (!user) {
+      throw new Error("Unauthorized")
+    }
+
+    await (prisma as any).policyReview.delete({
+      where: { id: reviewId },
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error deleting policy review:", error)
+    return { success: false, error: "Failed to delete review" }
+  }
+}

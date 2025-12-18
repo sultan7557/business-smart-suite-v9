@@ -29,9 +29,11 @@ async function PoliciesPage({
   
   // Fetch policy categories with their policies
   const categories = await prisma.policyCategory.findMany({
-    where: {
-      archived: showArchived,
-    },
+    where: showArchived
+      ? undefined // In archived view, include all categories so archived policies remain visible under their original categories
+      : {
+          archived: false,
+        },
     include: {
       policies: {
         where: {

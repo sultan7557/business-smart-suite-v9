@@ -107,6 +107,7 @@ model User {
   policies                           Policy[]                            @relation("PolicyCreatedBy")
   policyUpdates                      Policy[]                            @relation("PolicyUpdatedBy")
   policyVersions                     PolicyVersion[]
+  policyReviews                      PolicyReview[]
   procedures                         Procedure[]                         @relation("ProcedureCreatedBy")
   procedureUpdates                   Procedure[]                         @relation("ProcedureUpdatedBy")
   procedureReviews                   ProcedureReview[]
@@ -287,6 +288,7 @@ model Policy {
   createdBy   User            @relation("PolicyCreatedBy", fields: [createdById], references: [id])
   updatedBy   User?           @relation("PolicyUpdatedBy", fields: [updatedById], references: [id])
   versions    PolicyVersion[]
+  reviews     PolicyReview[]
 }
 
 model PolicyVersion {
@@ -301,6 +303,20 @@ model PolicyVersion {
   createdBy   User      @relation(fields: [createdById], references: [id])
   document    Document? @relation(fields: [documentId], references: [id])
   policy      Policy    @relation(fields: [policyId], references: [id])
+}
+
+model PolicyReview {
+  id             String    @id @default(uuid())
+  policyId       String
+  reviewedById   String
+  reviewerName   String?
+  details        String
+  reviewDate     DateTime
+  nextReviewDate DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  policy         Policy    @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  reviewedBy     User      @relation(fields: [reviewedById], references: [id])
 }
 
 model Document {

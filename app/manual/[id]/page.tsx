@@ -148,26 +148,42 @@ export default async function ManualPage({ params }: ManualPageProps) {
             before change
           </p>
 
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border p-2 text-left">Date</th>
-                <th className="border p-2 text-left">Version</th>
-                <th className="border p-2 text-left">Updated by</th>
-                <th className="border p-2 text-left">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {manual.versions.map((version) => (
-                <tr key={version.id} className="border-b">
-                  <td className="border p-2">{new Date(version.issueDate).toLocaleDateString()}</td>
-                  <td className="border p-2 text-blue-600">{version.version}</td>
-                  <td className="border p-2">{version.createdBy.name}</td>
-                  <td className="border p-2">{version.notes || "-"}</td>
+          {manual.versions.length > 0 ? (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left">Date</th>
+                  <th className="border p-2 text-left">Version</th>
+                  <th className="border p-2 text-left">Updated by</th>
+                  <th className="border p-2 text-left">Notes</th>
+                  <th className="border p-2 text-left">Document</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {manual.versions.map((version) => (
+                  <tr key={version.id} className="border-b">
+                    <td className="border p-2">{new Date(version.issueDate).toLocaleDateString()}</td>
+                    <td className="border p-2 text-blue-600">{version.version}</td>
+                    <td className="border p-2">{version.createdBy.name}</td>
+                    <td className="border p-2">{version.notes || "-"}</td>
+                    <td className="border p-2">
+                      {version.document ? (
+                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
+                          <a href={`/api/documents/download/${version.document.fileUrl}`} download>
+                            Download
+                          </a>
+                        </Button>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center py-4 text-gray-500">No version history available</div>
+          )}
         </TabsContent>
 
         <TabsContent value="reviews">
@@ -186,7 +202,7 @@ export default async function ManualPage({ params }: ManualPageProps) {
           <div className="p-4 text-center">
             {latestDocument ? (
               <Button className="flex items-center" asChild>
-                <a href={latestDocument.fileUrl} download target="_blank" rel="noopener noreferrer">
+                <a href={`/api/documents/download/${latestDocument.fileUrl}`} download>
                   <Download className="h-4 w-4 mr-2" /> Download Document
                 </a>
               </Button>
